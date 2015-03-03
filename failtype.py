@@ -10,7 +10,7 @@ class Failtype(object):
 		"""
 		extra_converters: should be a list of functions to convert a string to a given object type. The last converter in the list is considdered the most specific.
 		"""
-		self._converters=[int,float,_gendate]+extra_converters
+		self._converters=[float,int,_gendate]+extra_converters
 		self._converter_result=[]
 		for i in self._converters:
 			self._converter_result.append(
@@ -72,6 +72,16 @@ def __test_parse_date():
 	>>> len(f._converter_result)
 	1
 	>>> len([i for i in f._converter_result if i['lasttype']==time.struct_time])
+	1
+	"""
+
+def __test_parse_int_list():
+	"""
+	>>> f=Failtype()
+	>>> f.test(["4","21","-34","0"])
+	>>> len(f._converter_result)
+	2
+	>>> len([i for i in f._converter_result if i['converter']==int])
 	1
 	"""
 
