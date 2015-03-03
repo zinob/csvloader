@@ -13,9 +13,7 @@ class Failtype(object):
 		self._converters=[float,int,_gendate]+extra_converters
 		self._converter_result=[]
 		for i in self._converters:
-			self._converter_result.append(
-					{'converter':i,'lasttype':None}
-					)
+			self._converter_result.append({'converter':i,'lasttype':None})
 		
 
 	def test(self,example):
@@ -25,6 +23,7 @@ class Failtype(object):
 		if type(example)==list:
 			for i in example:
 				self.test(i)
+			return
 
 		for c in self._converter_result[:]:
 			try:
@@ -33,6 +32,16 @@ class Failtype(object):
 				self._converter_result.remove(c)
 				#print sys.exc_info()
 				
+	def get_best_type(self):
+		"""
+		Get the most specific type-candidate.
+
+		returns: (type,converter)
+		returns a tupple consisting of the most specific type and its converter-function. 
+		"""
+		if len(self._converter_result)==0:
+			best={{'converter':str,'lasttype':str}}
+		best=self._converter_result[-1]
 
 def _gendate(s):
 	return time.strptime(s,"%Y-%m-%d %H:%M:%S")
@@ -51,6 +60,11 @@ def __test_parse_int():
 	"""
 	>>> f=Failtype()
 	>>> f.test("4")
+	>>> len(f._converter_result)
+	2
+	>>> len([i for i in f._converter_result if i['converter']==int])
+	1
+	>>> f.test("10")
 	>>> len(f._converter_result)
 	2
 	>>> len([i for i in f._converter_result if i['converter']==int])
@@ -78,10 +92,26 @@ def __test_parse_date():
 def __test_parse_int_list():
 	"""
 	>>> f=Failtype()
-	>>> f.test(["4","21","-34","0"])
+	>>> f.test(["4"])
 	>>> len(f._converter_result)
 	2
 	>>> len([i for i in f._converter_result if i['converter']==int])
+	1
+	>>> f.test(["0","10","314151926","-1","-34","-349435"])
+	>>> len([i for i in f._converter_result if i['converter']==int])
+	1
+	"""
+
+def __test_parse_float_list():
+	"""
+	>>> f=Failtype()
+	>>> f.test(["0","2","9"])
+	>>> len(f._converter_result)
+	2
+	>>> f.test(["0.0","30.1","3.1415","-1.31","-34.68","-90435.04693"])
+	>>> len(f._converter_result)
+	1
+	>>> len([i for i in f._converter_result if i['converter']==float])
 	1
 	"""
 
