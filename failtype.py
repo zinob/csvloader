@@ -40,8 +40,10 @@ class Failtype(object):
 		returns a tupple consisting of the most specific type and its converter-function. 
 		"""
 		if len(self._converter_result)==0:
-			best={{'converter':str,'lasttype':str}}
+			return (str,str)
 		best=self._converter_result[-1]
+
+		return (best['converter'],best['lasttype'])
 
 def _gendate(s):
 	return time.strptime(s,"%Y-%m-%d %H:%M:%S")
@@ -74,9 +76,13 @@ def __test_parse_int():
 def __test_parse_string():
 	"""
 	>>> f=Failtype()
+	>>> 
 	>>> f.test("asdf")
 	>>> len(f._converter_result)
 	0
+	>>> f.test("1911-03-20 11:11:00")
+	>>> f.get_best_type() 
+	(<type 'str'>, <type 'str'>)
 	"""
 
 def __test_parse_date():
@@ -87,6 +93,10 @@ def __test_parse_date():
 	1
 	>>> len([i for i in f._converter_result if i['lasttype']==time.struct_time])
 	1
+	>>> f.get_best_type()[1]
+	<type 'time.struct_time'>
+	>>> f.get_best_type()[0] == _gendate
+	True
 	"""
 
 def __test_parse_int_list():
@@ -100,6 +110,8 @@ def __test_parse_int_list():
 	>>> f.test(["0","10","314151926","-1","-34","-349435"])
 	>>> len([i for i in f._converter_result if i['converter']==int])
 	1
+	>>> f.get_best_type()
+	(<type 'int'>, <type 'int'>)
 	"""
 
 def __test_parse_float_list():
@@ -113,6 +125,8 @@ def __test_parse_float_list():
 	1
 	>>> len([i for i in f._converter_result if i['converter']==float])
 	1
+	>>> f.get_best_type() == (float, float)
+	True
 	"""
 
 if __name__ == "__main__":
