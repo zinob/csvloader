@@ -6,9 +6,11 @@ class Failtype(object):
 	"""
 	Attempts to deduce the most general shared type of a series of strings.
 	"""
-	def __init__(self,extra_converters=[]):
+	def __init__(self,extra_converters=[],sanitize=True):
 		"""
 		extra_converters: should be a list of functions to convert a string to a given object type. The last converter in the list is considdered the most specific.
+		sanitize: bool, if true the data will be .strip()ed and any empty values or
+		values called NULL (regardless of case) will be ignored.
 		"""
 		self._converters=[float,int,_gendate]+extra_converters
 		self._converter_result=[]
@@ -25,6 +27,9 @@ class Failtype(object):
 				self.test(i)
 			return
 
+		example=example.strip()
+		if(example=="" or example.upper()=="NULL"):
+			return
 		for c in self._converter_result[:]:
 			try:
 				c['lasttype']=type(c['converter'](example))
@@ -129,6 +134,20 @@ def __test_parse_float_list():
 	True
 	"""
 
+def __test_sanitizer():
+	"""
+	>>> f=Failtype()
+	>>> f.test("0.1")
+	>>> f.test("nuLL")
+	>>> f.test("   3.1415")
+	>>> f.get_best_type()
+	(<type 'float'>, <type 'float'>)
+	>>> f.test(" -1.31	")
+	>>> f.test("-34.68")
+	>>> f.test("")
+	>>> f.get_best_type()
+	(<type 'float'>, <type 'float'>)
+	"""
 if __name__ == "__main__":
 	import doctest
 	doctest.testmod()
