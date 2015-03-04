@@ -4,16 +4,18 @@ import doctest
 import sys
 import os
 
-def fileprober(fd,callback,maxrows=10000):
+def fileprober(fd,callback,skiphead=True,maxrows=10000):
 	"""
 	Helper function to probe rows of large files.
 
-	It read the first 1% or 4, which ever is the larger of the
-		specified maxrows of a file and then attempt to spread
-		the reads evenly through out the file. The number is
-		somewhat aproximate and might be +- "a few"
 	fd: a file descriptor that is to be analyzed
 	callback: the callback will be called for every selected row in the file
+	skiphead: Skip the first line (as it probbably contains column headers)
+	maxrows: the aproximate number of rows to sample fo the file.
+		It read the first 1% or 4 rows, which ever is the larger of the
+		specified maxrows of a file and then attempt to spread the reads
+		evenly through out the file. The number is somewhat aproximate and
+		might be +- "a few"
 	"""
 
 	fsize=0
@@ -26,14 +28,16 @@ def fileprober(fd,callback,maxrows=10000):
 	#	return
 
 	if (hasattr(fd,'seek') and hasattr(fd,'tell') and fsize != 0):
-		_full_skipper(fd,callback,maxrows)
+		_full_skipper(fd,callback,skiphead,maxrows)
 	else:
-		_head_reader(fd,callback,maxrows)
+		_head_reader(fd,callback,skiphead,maxrows)
 
-def _head_reader(fd,callback,maxrows):
+def _head_reader(fd,callback,skiphead,maxrows):
 	"""
-	If the file is not seekable, just read the first few rows...
+	If the file is not seekable, just read the first rows...
 	"""
+	if skiphead==True:
+		fd.readline()
 	n=0
 	for line in fd:
 		if n>= maxrows:
@@ -41,13 +45,17 @@ def _head_reader(fd,callback,maxrows):
 		n+=1
 		callback(line)
 
-def _full_skipper(fd,callback,maxrows):
+def _full_skipper(fd,callback,skiphead,maxrows):
 	"""
 	Read the first few rows,
 	then some in the middle
 	then the last row
 	"""
 	n=0
+	if skiphead==True:
+		fd.readline()
+		n=1
+		maxrows+=1
 	fsize=os.fstat(fd.fileno()).st_size
 
 	headread=max(4,maxrows/100)
@@ -105,7 +113,7 @@ def _test_head_reader():
 	>>> def foo(x):
 	...   if(x.strip() in ("0","22","99")):
 	...      print x.strip(),
-	>>> fileprober(f,foo,maxrows=40)
+	>>> fileprober(f,foo,skiphead=False,maxrows=40)
 	0 22
 	"""
 
@@ -118,9 +126,20 @@ def _test_seek_reader():
 	>>> f=open(testfile,"r")
 	>>> def foo(x):
 	...      print x.strip(),
-	>>> fileprober(f,foo,maxrows=10)
+	>>> fileprober(f,foo,skiphead=False,maxrows=10)
 	0 1 2 3 42 51 58 65 74 99
 	>>> os.remove(testfile)
+	"""
+
+def _test_with_typer():
+	"""
+	>>> from failtype import Failtype
+	>>> from StringIO import StringIO as sIO
+	>>> f=sIO("colname"+chr(10)+chr(10).join(str(i) for i in range(100)))
+	>>> t=Failtype()
+	>>> fileprober(f,t.test,skiphead=True,maxrows=40)
+	>>> t.get_best_type()
+	(<type 'int'>, <type 'int'>)
 	"""
 
 if __name__ == "__main__":
