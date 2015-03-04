@@ -18,6 +18,12 @@ class Failtype(object):
 			self._converter_result.append({'converter':i,'lasttype':None})
 		
 
+	def __call__(self,example):
+		"""
+		Equivalent to calling the .test(example) method on an object
+		"""
+		self.test(example)
+
 	def test(self,example):
 		"""
 		Takes a string and update the internal type registry.
@@ -59,6 +65,14 @@ def __test_parse_float():
 	>>> f.test("4.3")
 	>>> len(f._converter_result)
 	1
+	>>> len([i for i in f._converter_result if i['converter']==float])
+	1
+	"""
+
+def __test_call():
+	"""
+	>>> f=Failtype()
+	>>> f("4.3")
 	>>> len([i for i in f._converter_result if i['converter']==float])
 	1
 	"""
