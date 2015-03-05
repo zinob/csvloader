@@ -59,6 +59,16 @@ class csvparse(object):
 		if (len(newrow) != len(self.headers)) and not nocheck:
 			raise ValueError('The row "%s" has a different number of columns %i than the header %i'%(row,len(newrow), len(self.headers)))
 		return newrow
+
+	def __iter__(self):
+		self.fd.seek(0)
+		self.fd.readline()
+		def rowitterator():
+			for l in self.fd:
+				yield [conv.converter(col) for conv,col in zip(self.types,self.splitrow(l))]
+
+		return rowitterator()
+
 	def __str__(self):
 		return chr(10).join("%s: %s"%(h,t.get_best_type()[0]) for h,t in zip(self.headers,self.types))
 
@@ -76,7 +86,9 @@ def _test_singlecol():
    >>> f=sIO("colname"+chr(10)+chr(10).join(str(i) for i in range(100)))
    >>> t=csvparse(f)
 	>>> t.types
-	[failtype:(<type 'int'>, <type 'int'>)]
+	[failtype:typeinfo(type=<type 'int'>, converter=<type 'int'>)]
+	>>> [i for i in t][::9]
+	[[0], [9], [18], [27], [36], [45], [54], [63], [72], [81], [90], [99]]
    """
 
 def _test_multicol():
@@ -85,7 +97,7 @@ def _test_multicol():
    >>> f=sIO("isaint,isafloat"+chr(10)+chr(10).join(str(i)+",%i.3"%i for i in range(100)))
    >>> t=csvparse(f)
 	>>> t.types
-	[failtype:(<type 'int'>, <type 'int'>), failtype:(<type 'float'>, <type 'float'>)]
+	[failtype:typeinfo(type=<type 'int'>, converter=<type 'int'>), failtype:typeinfo(type=<type 'float'>, converter=<type 'float'>)]
 	>>> print str(t)
 	isaint: <type 'int'>
 	isafloat: <type 'float'>
