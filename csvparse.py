@@ -94,7 +94,7 @@ def _test_singlecol():
 def _test_multicol():
    """
    >>> from StringIO import StringIO as sIO
-   >>> f=sIO("isaint,isafloat"+chr(10)+chr(10).join(str(i)+",%i.3"%i for i in range(100)))
+   >>> f=sIO("isaint,isafloat"+chr(10)+chr(10).join("%i,%i.%i"%(i,i,i) for i in range(100)))
    >>> t=csvparse(f)
 	>>> t.types
 	[failtype:typeinfo(type=<type 'int'>, converter=<type 'int'>), failtype:typeinfo(type=<type 'float'>, converter=<type 'float'>)]
@@ -102,7 +102,7 @@ def _test_multicol():
 	isaint: <type 'int'>
 	isafloat: <type 'float'>
 	>>> [i for i in t][::17]
-	[[0, 0.3], [17, 17.3], [34, 34.3], [51, 51.3], [68, 68.3], [85, 85.3]]
+	[[0, 0.0], [17, 17.17], [34, 34.34], [51, 51.51], [68, 68.68], [85, 85.85]]
 """
 
 if __name__ == "__main__":
