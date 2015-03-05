@@ -100,7 +100,7 @@ def _test_head_reader():
 	>>> def foo(x):
 	...   if(x.strip() in ("0","22","99")):
 	...      print x.strip(),
-	>>> fileprober(f,foo)
+	>>> fileprober(f,foo,skiphead=False)
 	0 22 99
 	"""
 
@@ -112,7 +112,7 @@ def _test_head_readerskip():
 	>>> def foo(x):
 	...   if(x.strip() in ("0","22","99")):
 	...      print x.strip(),
-	>>> fileprober(f,foo)
+	>>> fileprober(f,foo,skiphead=True)
 	22 99
 	"""
 def _test_head_reader():
