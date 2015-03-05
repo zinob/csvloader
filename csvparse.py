@@ -16,6 +16,7 @@ class csvparse(object):
 				sample from the file to deduce the column types
 		"""
 		self.types=[]
+		assert hasattr(fd,'seek'), "provided file descriptor must be seekable"
 		self.fd=fd
 		self.maxrows=maxrows
 		self.sep=sep
@@ -59,6 +60,7 @@ class csvparse(object):
 			raise ValueError('The row "%s" has a different number of columns %i than the header %i'%(row,len(newrow), len(self.headers)))
 		return newrow
 
+
 def _test_rowsplit():
 	"""
    >>> from StringIO import StringIO as sIO
@@ -76,6 +78,15 @@ def _test_singlecol():
 	[failtype:(<type 'int'>, <type 'int'>)]
    """
 
+def _test_singlecol():
+   """
+   >>> from StringIO import StringIO as sIO
+   >>> f=sIO("isaint,isafloat"+chr(10)+chr(10).join(str(i)+",%i.3"%i for i in range(100)))
+   >>> t=csvparse(f)
+	>>> t.types
+	[failtype:(<type 'int'>, <type 'int'>), failtype:(<type 'float'>, <type 'float'>)]
+
+"""
 
 if __name__ == "__main__":
 	import doctest
