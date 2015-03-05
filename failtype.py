@@ -2,10 +2,13 @@
 import time
 import doctest
 import sys
+import collections 
+
 class failtype(object):
 	"""
 	Attempts to deduce the most general shared type of a series of strings.
 	"""
+	typeinfo=collections.namedtuple("typeinfo",["type","converter"])
 	def __init__(self,extra_converters=[],sanitize=True):
 		"""
 		extra_converters: should be a list of functions to convert a string to a given object type. The last converter in the list is considdered the most specific.
@@ -49,7 +52,7 @@ class failtype(object):
 		"""
 		Get the most specific type-candidate.
 
-		returns: (type,converter)
+		returns: a named tupple consistiong of (type=type,converter=converter)
 		returns a tupple consisting of the most specific type and its converter-function. 
 		"""
 		if not self._test_performed:
@@ -58,7 +61,10 @@ class failtype(object):
 			return (str,str)
 		best=self._converter_result[-1]
 
-		return (best['converter'],best['lasttype'])
+		return self.typeinfo(best['converter'],best['lasttype'])
+	@property
+	def converter(self):
+		return self.get_best_type().converter
 
 	def __str__(self):
 		return str(self.get_best_type())
@@ -99,6 +105,8 @@ def __test_parse_int():
 	2
 	>>> len([i for i in f._converter_result if i['converter']==int])
 	1
+	>>> f.converter
+	<type 'int'>
 	"""
 
 def __test_parse_string():
@@ -139,7 +147,7 @@ def __test_parse_int_list():
 	>>> len([i for i in f._converter_result if i['converter']==int])
 	1
 	>>> f.get_best_type()
-	(<type 'int'>, <type 'int'>)
+	typeinfo(type=<type 'int'>, converter=<type 'int'>)
 	"""
 
 def __test_parse_float_list():
@@ -164,12 +172,12 @@ def __test_sanitizer():
 	>>> f.test("nuLL")
 	>>> f.test("   3.1415")
 	>>> f.get_best_type()
-	(<type 'float'>, <type 'float'>)
+	typeinfo(type=<type 'float'>, converter=<type 'float'>)
 	>>> f.test(" -1.31	")
 	>>> f.test("-34.68")
 	>>> f.test("")
 	>>> f.get_best_type()
-	(<type 'float'>, <type 'float'>)
+	typeinfo(type=<type 'float'>, converter=<type 'float'>)
 	"""
 
 if __name__ == "__main__":
