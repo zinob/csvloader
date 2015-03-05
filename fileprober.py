@@ -133,15 +133,15 @@ def _test_seek_reader():
 
 def _test_with_typer():
 	"""
-	>>> from failtype import Failtype
+	>>> from failtype import failtype
 	>>> from StringIO import StringIO as sIO
 	>>> f=sIO("colname"+chr(10)+chr(10).join(str(i) for i in range(100)))
-	>>> t=Failtype()
+	>>> t=failtype()
 	>>> fileprober(f,t.test,skiphead=True,maxrows=40)
 	>>> t.get_best_type()
 	(<type 'int'>, <type 'int'>)
 	>>> f.seek(0)
-	>>> t=Failtype()
+	>>> t=failtype()
 	>>> fileprober(f,t,skiphead=False,maxrows=40)
 	>>> t.get_best_type()
 	(<type 'str'>, <type 'str'>)

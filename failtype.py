@@ -2,7 +2,7 @@
 import time
 import doctest
 import sys
-class Failtype(object):
+class failtype(object):
 	"""
 	Attempts to deduce the most general shared type of a series of strings.
 	"""
@@ -61,7 +61,7 @@ def _gendate(s):
 
 def __test_parse_float():
 	"""
-	>>> f=Failtype()
+	>>> f=failtype()
 	>>> f.test("4.3")
 	>>> len(f._converter_result)
 	1
@@ -71,7 +71,7 @@ def __test_parse_float():
 
 def __test_call():
 	"""
-	>>> f=Failtype()
+	>>> f=failtype()
 	>>> f("4.3")
 	>>> len([i for i in f._converter_result if i['converter']==float])
 	1
@@ -79,7 +79,7 @@ def __test_call():
 
 def __test_parse_int():
 	"""
-	>>> f=Failtype()
+	>>> f=failtype()
 	>>> f.test("4")
 	>>> len(f._converter_result)
 	2
@@ -94,7 +94,7 @@ def __test_parse_int():
 
 def __test_parse_string():
 	"""
-	>>> f=Failtype()
+	>>> f=failtype()
 	>>> 
 	>>> f.test("asdf")
 	>>> len(f._converter_result)
@@ -106,7 +106,7 @@ def __test_parse_string():
 
 def __test_parse_date():
 	"""
-	>>> f=Failtype()
+	>>> f=failtype()
 	>>> f.test("2015-03-20 20:50:10")
 	>>> len(f._converter_result)
 	1
@@ -120,7 +120,7 @@ def __test_parse_date():
 
 def __test_parse_int_list():
 	"""
-	>>> f=Failtype()
+	>>> f=failtype()
 	>>> f.test(["4"])
 	>>> len(f._converter_result)
 	2
@@ -135,7 +135,7 @@ def __test_parse_int_list():
 
 def __test_parse_float_list():
 	"""
-	>>> f=Failtype()
+	>>> f=failtype()
 	>>> f.test(["0","2","9"])
 	>>> len(f._converter_result)
 	2
@@ -150,7 +150,7 @@ def __test_parse_float_list():
 
 def __test_sanitizer():
 	"""
-	>>> f=Failtype()
+	>>> f=failtype()
 	>>> f.test("0.1")
 	>>> f.test("nuLL")
 	>>> f.test("   3.1415")
