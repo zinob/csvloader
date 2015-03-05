@@ -104,6 +104,17 @@ def _test_head_reader():
 	0 22 99
 	"""
 
+def _test_head_readerskip():
+	"""
+	>>> from StringIO import StringIO as sIO
+	>>> f=sIO((chr(10)).join([str(i) for i in range(100)]))
+	>>> f.seek(0)
+	>>> def foo(x):
+	...   if(x.strip() in ("0","22","99")):
+	...      print x.strip(),
+	>>> fileprober(f,foo)
+	22 99
+	"""
 def _test_head_reader():
 	"""
 	>>> from StringIO import StringIO as sIO
