@@ -14,6 +14,7 @@ class failtype(object):
 		"""
 		self._converters=[float,int,_gendate]+extra_converters
 		self._converter_result=[]
+		self._test_performed=False
 		for i in self._converters:
 			self._converter_result.append({'converter':i,'lasttype':None})
 		
@@ -42,6 +43,7 @@ class failtype(object):
 			except:
 				self._converter_result.remove(c)
 				#print sys.exc_info()
+		self._test_performed=True
 				
 	def get_best_type(self):
 		"""
@@ -50,6 +52,8 @@ class failtype(object):
 		returns: (type,converter)
 		returns a tupple consisting of the most specific type and its converter-function. 
 		"""
+		if not self._test_performed:
+			raise LookupError("typer hasnt been fed with data")
 		if len(self._converter_result)==0:
 			return (str,str)
 		best=self._converter_result[-1]
