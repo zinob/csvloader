@@ -56,6 +56,11 @@ class failtype(object):
 
 		return (best['converter'],best['lasttype'])
 
+	def __str__(self):
+		return str(self.get_best_type())
+	def __repr__(self):
+		return "failtype:"+self.__str__()
+
 def _gendate(s):
 	return time.strptime(s,"%Y-%m-%d %H:%M:%S")
 
@@ -162,6 +167,7 @@ def __test_sanitizer():
 	>>> f.get_best_type()
 	(<type 'float'>, <type 'float'>)
 	"""
+
 if __name__ == "__main__":
 	import doctest
 	doctest.testmod()
