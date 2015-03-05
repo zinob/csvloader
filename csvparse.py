@@ -101,6 +101,8 @@ def _test_multicol():
 	>>> print str(t)
 	isaint: <type 'int'>
 	isafloat: <type 'float'>
+	>>> [i for i in t][::17]
+	[[0, 0.3], [17, 17.3], [34, 34.3], [51, 51.3], [68, 68.3], [85, 85.3]]
 """
 
 if __name__ == "__main__":
