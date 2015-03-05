@@ -4,6 +4,11 @@ import fileprober
 import failtype
 
 class csvparse(object):
+	"""
+	Class to parse csv-file in to a series of rows with "correctly" typed cells
+
+	instantiate the class with a filedescriptor of a CSV file and then itterate over it.
+	"""
 	def __init__(self,fd,sep=',',maxrows=1000):
 		"""
 		fd: A file descriptor pointing to the CSV-file to be parsed,
@@ -70,7 +75,9 @@ class csvparse(object):
 		return rowitterator()
 
 	def __str__(self):
-		return chr(10).join("%s: %s"%(h,t.get_best_type()[0]) for h,t in zip(self.headers,self.types))
+		return "csvparser:\n"+"\n".join(
+			"  %s: %s"%(h,t.get_best_type()[0]) for h,t in zip(self.headers,self.types)
+		)
 
 def _test_rowsplit():
 	"""
@@ -99,8 +106,9 @@ def _test_multicol():
 	>>> t.types
 	[failtype:typeinfo(type=<type 'int'>, converter=<type 'int'>), failtype:typeinfo(type=<type 'float'>, converter=<type 'float'>)]
 	>>> print str(t)
-	isaint: <type 'int'>
-	isafloat: <type 'float'>
+	csvparser:
+	  isaint: <type 'int'>
+	  isafloat: <type 'float'>
 	>>> [i for i in t][::17]
 	[[0, 0.0], [17, 17.17], [34, 34.34], [51, 51.51], [68, 68.68], [85, 85.85]]
 """
