@@ -150,7 +150,7 @@ def _test_with_typer():
 	>>> t=failtype()
 	>>> fileprober(f,t.test,skiphead=True,maxrows=40)
 	>>> t.get_best_type()
-	(<type 'int'>, <type 'int'>)
+	typeinfo(type=<type 'int'>, converter=<type 'int'>)
 	>>> f.seek(0)
 	>>> t=failtype()
 	>>> fileprober(f,t,skiphead=False,maxrows=40)
