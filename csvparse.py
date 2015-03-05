@@ -59,7 +59,8 @@ class csvparse(object):
 		if (len(newrow) != len(self.headers)) and not nocheck:
 			raise ValueError('The row "%s" has a different number of columns %i than the header %i'%(row,len(newrow), len(self.headers)))
 		return newrow
-
+	def __str__(self):
+		return chr(10).join("%s: %s"%(h,t.get_best_type()[0]) for h,t in zip(self.headers,self.types))
 
 def _test_rowsplit():
 	"""
@@ -78,14 +79,16 @@ def _test_singlecol():
 	[failtype:(<type 'int'>, <type 'int'>)]
    """
 
-def _test_singlecol():
+def _test_multicol():
    """
    >>> from StringIO import StringIO as sIO
    >>> f=sIO("isaint,isafloat"+chr(10)+chr(10).join(str(i)+",%i.3"%i for i in range(100)))
    >>> t=csvparse(f)
 	>>> t.types
 	[failtype:(<type 'int'>, <type 'int'>), failtype:(<type 'float'>, <type 'float'>)]
-
+	>>> print str(t)
+	isaint: <type 'int'>
+	isafloat: <type 'float'>
 """
 
 if __name__ == "__main__":
