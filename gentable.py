@@ -22,7 +22,7 @@ def load_to_table(fd,dbURL):
 	assert hasattr(fd,'seek'), "fd has to be seekable"
 	assert hasattr(fd,'name'), "fd needs to have a .name attribute"
 	for name,t in zip(csv.headers,csv.types):
-		if t==str:
+		if t.type==str:
 			newcol=Column(name, String(t.get_extras()['strsize']))
 		else:
 			newcol=Column(name, typemap[t.type])
@@ -40,13 +40,29 @@ def _test_singlecol():
    '''
    >>> from StringIO import StringIO as sIO
    >>> fd=sIO("colname"+chr(10)+chr(10).join(str(i) for i in range(100)))
-	>>> fd.name="stringio"
+	>>> fd.name="onecol_stringio"
 	>>> load_to_table(fd,"sqlite:////tmp/gentable_testtable.sqlite")
 	>>> import sqlite3
 	>>> db=sqlite3.connect("/tmp/gentable_testtable.sqlite")
-	>>> db.execute('select name,sql from sqlite_master where name="stringio";').fetchall()
-	[(u'stringio', u'CREATE TABLE stringio (\\n\\tcolname INTEGER\\n)')]
+	>>> db.execute('select sql from sqlite_master where name=?;',[fd.name]).fetchall()
+	[(u'CREATE TABLE ... (\\n\\tcolname INTEGER\\n)',)]
+   '''
+
+def _test_multicol():
+   '''
+   >>> from StringIO import StringIO as sIO
+	>>> heads="isint,isfloat,isstr,isdate"
+	>>> lines=["%i,%i.%i,foobar,2015-01-%i 10:10:10"%(i,i,i,i) for i in range(30)]
+	>>> print lines
+   >>> fd=sIO(heads+chr(10)+chr(10).join(lines))
+	>>> fd.seek(0)
+	>>> fd.name="multicol_stringio"
+	>>> load_to_table(fd,"sqlite:////tmp/gentable_testtable.sqlite")
+	>>> import sqlite3
+	>>> db=sqlite3.connect("/tmp/gentable_testtable.sqlite")
+	>>> db.execute('select sql from sqlite_master where name=?;',[fd.name]).fetchall()
+	[(u'CREATE TABLE multicol_stringio (\\n\tisint INTEGER(2), \\n\\tisfloat FLOAT(5), \\n\\tisstr VARCHAR(6), \\n\\tisdate DATE(19)\\n)',)]
    '''
 if __name__ == "__main__":
 	import doctest
-	doctest.testmod()
+	doctest.testmod(optionflags=doctest.ELLIPSIS)
