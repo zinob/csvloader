@@ -8,10 +8,11 @@ import csvparse
 from sqlalchemy import *
 
 
-def load_to_table(fd,dbURL):
+def load_to_table(fd,dbURL, tabname=None):
 	"""
 	fd: a file descriptor pointing to the desired csv-file
 	dbURL: an url pointing to the desired database,for example "sqlite:///:memory:"
+	tabname: the name of the table to be created, if not provided it will be taken from teh file
 	"""
 	engine = create_engine(dbURL)
 	metadata = MetaData()
@@ -20,16 +21,19 @@ def load_to_table(fd,dbURL):
 	typemap={time.struct_time:DateTime, int:Integer, float:Float}
 	cols=[]
 	assert hasattr(fd,'seek'), "fd has to be seekable"
-	assert hasattr(fd,'name'), "fd needs to have a .name attribute"
+	assert tabname or hasattr(fd,'name'), "fd needs to have a .name attribute"
+	if (tabname ==None):
+		_to_tabname(fd.name)
+
 	for name,t in zip(csv.headers,csv.types):
 		if t.type==str:
 			newcol=Column(name, String(t.get_extras()['strsize']))
 		else:
 			newcol=Column(name, typemap[t.type])
 		cols.append(newcol)
-	table = Table(_to_tabname(fd.name), metadata, *cols)
-
-
+	print cols
+	return 
+	table = Table(tabname, metadata, *cols)
 	metadata.create_all(engine)
 
 def _to_tabname(s):
@@ -48,12 +52,11 @@ def _test_singlecol():
 	[(u'CREATE TABLE ... (\\n\\tcolname INTEGER\\n)',)]
    '''
 
-def _test_multicol():
+#def _test_multicol():
    '''
    >>> from StringIO import StringIO as sIO
 	>>> heads="isint,isfloat,isstr,isdate"
 	>>> lines=["%i,%i.%i,foobar,2015-01-%i 10:10:10"%(i,i,i,i) for i in range(30)]
-	>>> print lines
    >>> fd=sIO(heads+chr(10)+chr(10).join(lines))
 	>>> fd.seek(0)
 	>>> fd.name="multicol_stringio"
