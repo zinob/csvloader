@@ -66,7 +66,7 @@ class failtype(object):
 		if not self._test_performed:
 			raise LookupError("typer hasnt been fed with data")
 		if len(self._converter_result)==0:
-			return (str,str)
+			return self.typeinfo(str,str)
 		best=self._converter_result[-1]
 
 		return self.typeinfo(best['converter'],best['lasttype'])
