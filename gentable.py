@@ -23,7 +23,7 @@ def load_to_table(fd,dbURL, tabname=None):
 	assert hasattr(fd,'seek'), "fd has to be seekable"
 	assert tabname or hasattr(fd,'name'), "fd needs to have a .name attribute"
 	if (tabname ==None):
-		_to_tabname(fd.name)
+		tabname=_to_tabname(fd.name)
 
 	for name,t in zip(csv.headers,csv.types):
 		if t.type==str:
@@ -31,10 +31,11 @@ def load_to_table(fd,dbURL, tabname=None):
 		else:
 			newcol=Column(name, typemap[t.type])
 		cols.append(newcol)
-	print cols
-	return 
 	table = Table(tabname, metadata, *cols)
 	metadata.create_all(engine)
+
+	ins=table.insert().values(csv)
+	engine.connect().execute(ins)
 
 def _to_tabname(s):
 	"strip direcotry and ext-part of a file name"
