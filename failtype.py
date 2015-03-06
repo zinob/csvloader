@@ -74,6 +74,10 @@ class failtype(object):
 	def converter(self):
 		return self.get_best_type().converter
 
+	@property
+	def type(self):
+		return self.get_best_type().type
+
 	def __str__(self):
 		return str(self.get_best_type())
 	def __repr__(self):
