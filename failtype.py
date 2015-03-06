@@ -8,7 +8,7 @@ class failtype(object):
 	"""
 	Attempts to deduce the most general shared type of a series of strings.
 	"""
-	typeinfo=collections.namedtuple("typeinfo",["type","converter"])
+	typeinfo=collections.namedtuple("typeinfo",["converter","type"])
 	def __init__(self,extra_converters=[],sanitize=True):
 		"""
 		extra_converters: should be a list of functions to convert a string to a given object type. The last converter in the list is considdered the most specific.
@@ -130,7 +130,7 @@ def __test_parse_string():
 	0
 	>>> f.test("1911-03-20 11:11:00")
 	>>> f.get_best_type() 
-	(<type 'str'>, <type 'str'>)
+	typeinfo(converter=<type 'str'>, type=<type 'str'>)
 	>>> f.get_extras()['strsize'] 
 	19
 	"""
@@ -143,9 +143,9 @@ def __test_parse_date():
 	1
 	>>> len([i for i in f._converter_result if i['lasttype']==time.struct_time])
 	1
-	>>> f.get_best_type()[1]
+	>>> f.get_best_type().type
 	<type 'time.struct_time'>
-	>>> f.get_best_type()[0] == _gendate
+	>>> f.get_best_type().converter == _gendate
 	True
 	"""
 
@@ -161,7 +161,7 @@ def __test_parse_int_list():
 	>>> len([i for i in f._converter_result if i['converter']==int])
 	1
 	>>> f.get_best_type()
-	typeinfo(type=<type 'int'>, converter=<type 'int'>)
+	typeinfo(converter=<type 'int'>, type=<type 'int'>)
 	"""
 
 def __test_parse_float_list():
@@ -186,12 +186,12 @@ def __test_sanitizer():
 	>>> f.test("nuLL")
 	>>> f.test("   3.1415")
 	>>> f.get_best_type()
-	typeinfo(type=<type 'float'>, converter=<type 'float'>)
+	typeinfo(converter=<type 'float'>, type=<type 'float'>)
 	>>> f.test(" -1.31	")
 	>>> f.test("-34.68")
 	>>> f.test("")
 	>>> f.get_best_type()
-	typeinfo(type=<type 'float'>, converter=<type 'float'>)
+	typeinfo(converter=<type 'float'>, type=<type 'float'>)
 	"""
 
 if __name__ == "__main__":
