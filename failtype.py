@@ -18,6 +18,7 @@ class failtype(object):
 		self._converters=[float,int,_gendate]+extra_converters
 		self._converter_result=[]
 		self._test_performed=False
+		self._extras={}
 		for i in self._converters:
 			self._converter_result.append({'converter':i,'lasttype':None})
 		
@@ -46,8 +47,15 @@ class failtype(object):
 			except:
 				self._converter_result.remove(c)
 				#print sys.exc_info()
+		if len(self._converter_result)==0:
+			newlen=len(example)
+			if newlen>self._extras.get("strsize",1):
+				self._extras["strsize"]=len(example)
+
 		self._test_performed=True
 				
+	def get_extras(self):
+		return self._extras
 	def get_best_type(self):
 		"""
 		Get the most specific type-candidate.
@@ -119,6 +127,8 @@ def __test_parse_string():
 	>>> f.test("1911-03-20 11:11:00")
 	>>> f.get_best_type() 
 	(<type 'str'>, <type 'str'>)
+	>>> f.get_extras()['strsize'] 
+	19
 	"""
 
 def __test_parse_date():
