@@ -93,7 +93,7 @@ def _test_singlecol():
    >>> f=sIO("colname"+chr(10)+chr(10).join(str(i) for i in range(100)))
    >>> t=csvparse(f)
 	>>> t.types
-	[failtype:typeinfo(type=<type 'int'>, converter=<type 'int'>)]
+	[failtype:typeinfo(converter=<type 'int'>, type=<type 'int'>)]
 	>>> [i for i in t][::9]
 	[[0], [9], [18], [27], [36], [45], [54], [63], [72], [81], [90], [99]]
    """
@@ -104,7 +104,7 @@ def _test_multicol():
    >>> f=sIO("isaint,isafloat"+chr(10)+chr(10).join("%i,%i.%i"%(i,i,i) for i in range(100)))
    >>> t=csvparse(f)
 	>>> t.types
-	[failtype:typeinfo(type=<type 'int'>, converter=<type 'int'>), failtype:typeinfo(type=<type 'float'>, converter=<type 'float'>)]
+	[failtype:typeinfo(converter=<type 'int'>, type=<type 'int'>), failtype:typeinfo(converter=<type 'float'>, type=<type 'float'>)]
 	>>> print str(t)
 	csvparser:
 	  isaint: <type 'int'>
@@ -112,6 +112,19 @@ def _test_multicol():
 	>>> [i for i in t][::17]
 	[[0, 0.0], [17, 17.17], [34, 34.34], [51, 51.51], [68, 68.68], [85, 85.85]]
 """
+
+def _test_hardcore():
+	"""
+   >>> from StringIO import StringIO as sIO
+	>>> heads="isint,isfloat,isstr,isdate"
+	>>> lines=["%i,%i.%i,foobar,2015-01-%02i 10:10:10"%(i,i,i,i+1) for i in range(30)]
+	>>> lines
+   >>> fd=sIO(heads+chr(10)+chr(10).join(lines))
+	>>> fd.seek(0)
+   >>> t=csvparse(fd)
+	>>> [i.type for i in t.types]
+	[<type 'int'>, <type 'float'>, <type 'str'>, <type 'time.struct_time''>]
+	"""
 
 if __name__ == "__main__":
 	import doctest
