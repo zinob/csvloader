@@ -118,12 +118,11 @@ def _test_hardcore():
    >>> from StringIO import StringIO as sIO
 	>>> heads="isint,isfloat,isstr,isdate"
 	>>> lines=["%i,%i.%i,foobar,2015-01-%02i 10:10:10"%(i,i,i,i+1) for i in range(30)]
-	>>> lines
    >>> fd=sIO(heads+chr(10)+chr(10).join(lines))
 	>>> fd.seek(0)
    >>> t=csvparse(fd)
 	>>> [i.type for i in t.types]
-	[<type 'int'>, <type 'float'>, <type 'str'>, <type 'time.struct_time''>]
+	[<type 'int'>, <type 'float'>, <type 'str'>, <type 'time.struct_time'>]
 	"""
 
 if __name__ == "__main__":
