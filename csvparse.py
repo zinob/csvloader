@@ -122,7 +122,7 @@ def _test_hardcore():
 	>>> fd.seek(0)
    >>> t=csvparse(fd)
 	>>> [i.type for i in t.types]
-	[<type 'int'>, <type 'float'>, <type 'str'>, <type 'time.struct_time'>]
+	[<type 'int'>, <type 'float'>, <type 'str'>, <type 'datetime.datetime'>]
 	"""
 
 if __name__ == "__main__":
