@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import time
+from datetime import datetime
 import doctest
 import sys
 import collections 
@@ -84,7 +84,8 @@ class failtype(object):
 		return "failtype:"+self.__str__()
 
 def _gendate(s):
-	return time.strptime(s,"%Y-%m-%d %H:%M:%S")
+	return datetime.strptime(s,"%Y-%m-%d %H:%M:%S")
+	#return time.strptime(s,"%Y-%m-%d %H:%M:%S")
 
 def __test_parse_float():
 	"""
@@ -141,10 +142,10 @@ def __test_parse_date():
 	>>> f.test("2015-03-20 20:50:10")
 	>>> len(f._converter_result)
 	1
-	>>> len([i for i in f._converter_result if i['lasttype']==time.struct_time])
+	>>> len([i for i in f._converter_result if i['lasttype']==datetime])
 	1
 	>>> f.get_best_type().type
-	<type 'time.struct_time'>
+	<type 'datetime.datetime'>
 	>>> f.get_best_type().converter == _gendate
 	True
 	"""
