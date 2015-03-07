@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import time
+from datetime import datetime
 import os.path
 import fileprober
 import failtype
@@ -18,7 +18,7 @@ def load_to_table(fd,dbURL, tabname=None):
 	metadata = MetaData()
 	
 	csv=csvparse.csvparse(fd)
-	typemap={time.struct_time:DateTime, int:Integer, float:Float}
+	typemap={datetime:DateTime, int:Integer, float:Float}
 	cols=[]
 	assert hasattr(fd,'seek'), "fd has to be seekable"
 	assert tabname or hasattr(fd,'name'), "fd needs to have a .name attribute"
@@ -34,7 +34,17 @@ def load_to_table(fd,dbURL, tabname=None):
 	table = Table(tabname, metadata, *cols)
 	metadata.create_all(engine)
 
-	ins=table.insert().values(csv)
+	n=0
+	batch=[]
+	for l in csv:
+		batch.append(l)
+		if n>1000:
+			ins=table.insert().values(batch)
+			engine.connect().execute(ins)
+			batch=[]
+			n=0
+		n+=1
+	ins=table.insert().values(batch)
 	engine.connect().execute(ins)
 
 def _to_tabname(s):
@@ -53,11 +63,11 @@ def _test_singlecol():
 	[(u'CREATE TABLE ... (\\n\\tcolname INTEGER\\n)',)]
    '''
 
-#def _test_multicol():
+def _test_multicol():
    '''
    >>> from StringIO import StringIO as sIO
 	>>> heads="isint,isfloat,isstr,isdate"
-	>>> lines=["%i,%i.%i,foobar,2015-01-%i 10:10:10"%(i,i,i,i) for i in range(30)]
+	>>> lines=["%i,%i.%i,foobar,2015-01-%i 10:10:10"%(i,i,i,i+1) for i in range(29)]
    >>> fd=sIO(heads+chr(10)+chr(10).join(lines))
 	>>> fd.seek(0)
 	>>> fd.name="multicol_stringio"
@@ -65,7 +75,7 @@ def _test_singlecol():
 	>>> import sqlite3
 	>>> db=sqlite3.connect("/tmp/gentable_testtable.sqlite")
 	>>> db.execute('select sql from sqlite_master where name=?;',[fd.name]).fetchall()
-	[(u'CREATE TABLE multicol_stringio (\\n\tisint INTEGER(2), \\n\\tisfloat FLOAT(5), \\n\\tisstr VARCHAR(6), \\n\\tisdate DATE(19)\\n)',)]
+	[(u'CREATE TABLE multicol_stringio (\\n\\tisint INTEGER, \\n\\tisfloat FLOAT, \\n\\tisstr VARCHAR(6), \\n\\tisdate DATETIME\\n)',)]
    '''
 if __name__ == "__main__":
 	import doctest
