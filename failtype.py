@@ -15,7 +15,7 @@ class failtype(object):
 		sanitize: bool, if true the data will be .strip()ed and any empty values or
 		values called NULL (regardless of case) will be ignored.
 		"""
-		self._converters=[float,int,_gendate]+extra_converters
+		self._converters=[float,int,_gendate,_gendate2]+extra_converters
 		self._converter_result=[]
 		self._test_performed=False
 		self._extras={}
@@ -85,6 +85,9 @@ class failtype(object):
 
 def _gendate(s):
 	return datetime.strptime(s,"%Y-%m-%d %H:%M:%S")
+
+def _gendate2(s):
+	return datetime.strptime(s,"%Y-%m-%d %H:%M:%S.%f")
 	#return time.strptime(s,"%Y-%m-%d %H:%M:%S")
 
 def __test_parse_float():
