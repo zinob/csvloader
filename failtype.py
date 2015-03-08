@@ -9,17 +9,19 @@ class failtype(object):
 	Attempts to deduce the most general shared type of a series of strings.
 	"""
 	typeinfo=collections.namedtuple("typeinfo",["converter","type"])
-	def __init__(self,extra_converters=[],sanitize=True):
+	def __init__(self,extra_converters=[],sanitize=True, utf=False):
 		"""
 		extra_converters: should be a list of functions to convert a string to a given object type. The last converter in the list is considdered the most specific.
-		sanitize: bool, if true the data will be .strip()ed and any empty values or
-		values called NULL (regardless of case) will be ignored.
+		sanitize (default True): if true the data will be .strip()ed and any empty values or
+				values called NULL (regardless of case) will be ignored.
+		utf (default False): Will return a lambda .decode('utf-8') instead of the naive string converter. Yeah that is all... and yes, that is ugly
 		"""
 		self._converters=[float,int,_gendate,_gendate2]+extra_converters
 		self._converter_result=[]
 		self._test_performed=False
 		self._extras={}
 		self._sanitize=sanitize
+		self.utf=utf
 		for i in self._converters:
 			self._converter_result.append({'converter':i,'lasttype':None})
 		
@@ -67,7 +69,10 @@ class failtype(object):
 		if not self._test_performed:
 			raise LookupError("typer hasnt been fed with data")
 		if len(self._converter_result)==0:
-			return self.typeinfo(str,str)
+			if not self.utf:
+				return self.typeinfo(str,str)
+			else:
+				return self.typeinfo((lambda s: s.decode('utf-8')),unicode)
 		best=self._converter_result[-1]
 
 		def nulldecorator(fun):
@@ -80,6 +85,7 @@ class failtype(object):
 
 		if self._sanitize:
 			conv=nulldecorator(best['converter'])
+			conv.__name__="nullsafe_"+best['converter'].__name__
 		else:
 			conv=best['converter']
 
@@ -137,7 +143,7 @@ def __test_parse_int():
 	>>> len([i for i in f._converter_result if i['converter']==int])
 	1
 	>>> f.converter
-	<type 'int'>
+	<function nullsafe_int at ...>
 	"""
 
 def __test_parse_string():
@@ -164,8 +170,8 @@ def __test_parse_date():
 	1
 	>>> f.get_best_type().type
 	<type 'datetime.datetime'>
-	>>> f.get_best_type().converter == _gendate
-	True
+	>>> f.get_best_type().converter
+	<function nullsafe__gendate at ...>
 	"""
 
 def __test_parse_int_list():
@@ -180,12 +186,12 @@ def __test_parse_int_list():
 	>>> len([i for i in f._converter_result if i['converter']==int])
 	1
 	>>> f.get_best_type()
-	typeinfo(converter=<type 'int'>, type=<type 'int'>)
+	typeinfo(converter=<function nullsafe_int at ...>, type=<type 'int'>)
 	"""
 
 def __test_parse_float_list():
 	"""
-	>>> f=failtype()
+	>>> f=failtype(sanitize=False)
 	>>> f.test(["0","2","9"])
 	>>> len(f._converter_result)
 	2
@@ -205,14 +211,14 @@ def __test_sanitizer():
 	>>> f.test("nuLL")
 	>>> f.test("   3.1415")
 	>>> f.get_best_type()
-	typeinfo(converter=<type 'float'>, type=<type 'float'>)
+	typeinfo(converter=<function nullsafe_float at ...>, type=<type 'float'>)
 	>>> f.test(" -1.31	")
 	>>> f.test("-34.68")
 	>>> f.test("")
 	>>> f.get_best_type()
-	typeinfo(converter=<type 'float'>, type=<type 'float'>)
+	typeinfo(converter=<function nullsafe_float at ...>, type=<type 'float'>)
 	"""
 
 if __name__ == "__main__":
 	import doctest
-	doctest.testmod()
+	doctest.testmod(optionflags=doctest.ELLIPSIS)
