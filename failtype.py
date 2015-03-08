@@ -80,7 +80,7 @@ class failtype(object):
 				if s.lower()=='null' or s=='':
 					return None
 				else:
-					fun(s)
+					return fun(s)
 			return nulldecorated
 
 		if self._sanitize:
