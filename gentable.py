@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from datetime import datetime
 import os.path
 import fileprober
@@ -18,7 +18,7 @@ def load_to_table(fd,dbURL,sep=',', tabname=None):
 	metadata = MetaData()
 	
 	csv=csvparse.csvparse(fd,sep=sep)
-	typemap={datetime:DateTime, int:Integer, float:Float}
+	typemap={datetime:DateTime, int:Integer, float:Float, unicode:String}
 	cols=[]
 	assert hasattr(fd,'seek'), "fd has to be seekable"
 	assert tabname or hasattr(fd,'name'), "fd needs to have a .name attribute"
