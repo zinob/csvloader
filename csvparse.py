@@ -2,7 +2,7 @@
 import doctest
 import fileprober
 import failtype
-
+import sys
 class csvparse(object):
 	"""
 	Class to parse csv-file in to a series of rows with "correctly" typed cells
@@ -25,10 +25,15 @@ class csvparse(object):
 		self.fd=fd
 		self.maxrows=maxrows
 		self.sep=sep
+		
+		self.start=0
+		if fd.read(3)=="\xef\xbb\xbf":
+			self.start=3
 
+		self.fd.seek(self.start)
 		self.headers=[]
 		self.headers=[i.strip() for i in self.splitrow(fd.readline(),nocheck=True) if i.strip()!='']
-		self.fd.seek(0)
+		self.fd.seek(self.start)
 
 		self.types=[failtype.failtype() for i in self.headers]
 		self.probe(fd)
@@ -66,11 +71,19 @@ class csvparse(object):
 		return newrow
 
 	def __iter__(self):
-		self.fd.seek(0)
+		self.fd.seek(self.start)
 		self.fd.readline()
 		def rowitterator():
+			failed=False
 			for l in self.fd:
-				yield [conv.converter(col) for conv,col in zip(self.types,self.splitrow(l))]
+				if failed:
+					raise failed
+				try:
+					yield [conv.converter(col) for conv,col in zip(self.types,self.splitrow(l))]
+				except ValueError:
+					failed=sys.exc_info()[0] #hope that we are on the last line,delay raising of error
+					
+	
 
 		return rowitterator()
 
