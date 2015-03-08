@@ -19,11 +19,9 @@ tablemap={}
 if args.map!=None:
 	tablemap=dict(i.strip().split(":",1) for i in args.map)
 
-print args
-print dir(args)
 dbURL=args.database
 sep=args.separator
 for fname in args.CSVfiles:
 	tab=tablemap.get(fname,None)
-	gentable.load_to_table(open(fname,'r'),dbURL, sep=sep, tabname=tab)
+	gentable.load_to_table(open(fname,'r'),dbURL, sep=sep, tabname=tab, verbose=True)
 
