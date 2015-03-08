@@ -19,6 +19,7 @@ class failtype(object):
 		self._converter_result=[]
 		self._test_performed=False
 		self._extras={}
+		self._sanitize=sanitize
 		for i in self._converters:
 			self._converter_result.append({'converter':i,'lasttype':None})
 		
@@ -39,7 +40,7 @@ class failtype(object):
 			return
 
 		example=example.strip()
-		if(example=="" or example.upper()=="NULL"):
+		if(self._sanitize and (example=="" or example.upper()=="NULL")):
 			return
 		for c in self._converter_result[:]:
 			try:
@@ -69,7 +70,21 @@ class failtype(object):
 			return self.typeinfo(str,str)
 		best=self._converter_result[-1]
 
-		return self.typeinfo(best['converter'],best['lasttype'])
+		def nulldecorator(fun):
+			def nulldecorated(s):
+				if s.lower()=='null' or s=='':
+					return None
+				else:
+					fun(s)
+			return nulldecorated
+
+		if self._sanitize:
+			conv=nulldecorator(best['converter'])
+		else:
+			conv=best['converter']
+
+		return self.typeinfo(conv,best['lasttype'])
+
 	@property
 	def converter(self):
 		return self.get_best_type().converter
