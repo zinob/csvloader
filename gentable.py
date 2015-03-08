@@ -8,11 +8,17 @@ import csvparse
 from sqlalchemy import *
 
 
-def load_to_table(fd,dbURL,sep=',', tabname=None):
+def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 	"""
 	fd: a file descriptor pointing to the desired csv-file
 	dbURL: an url pointing to the desired database,for example "sqlite:///:memory:"
-	tabname: the name of the table to be created, if not provided it will be taken from teh file
+	sep (default ','): The field sepparator, can not be excaped
+		in any way in the document.
+
+	tabname (default None): the name of the table to be created, if not
+		provided it will be taken from the base-name of the file
+
+	verbose (default False): print more progress info to stdout
 	"""
 	engine = create_engine(dbURL)
 	metadata = MetaData()
@@ -34,6 +40,11 @@ def load_to_table(fd,dbURL,sep=',', tabname=None):
 	table = Table(tabname, metadata, *cols)
 	metadata.create_all(engine)
 
+	if verbose:
+		from pprint import pprint
+		import sys
+		print 'generating:', table
+		pprint(cols)
 	n=0
 	batch=[]
 	for l in csv:
@@ -43,6 +54,9 @@ def load_to_table(fd,dbURL,sep=',', tabname=None):
 			engine.connect().execute(ins)
 			batch=[]
 			n=0
+			if verbose:
+				sys.stdout.write('.')
+				sys.stdout.flush()
 		n+=1
 	ins=table.insert().values(batch)
 	engine.connect().execute(ins)
