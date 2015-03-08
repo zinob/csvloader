@@ -8,7 +8,7 @@ import csvparse
 from sqlalchemy import *
 
 
-def load_to_table(fd,dbURL, tabname=None):
+def load_to_table(fd,dbURL,sep=',', tabname=None):
 	"""
 	fd: a file descriptor pointing to the desired csv-file
 	dbURL: an url pointing to the desired database,for example "sqlite:///:memory:"
@@ -17,7 +17,7 @@ def load_to_table(fd,dbURL, tabname=None):
 	engine = create_engine(dbURL)
 	metadata = MetaData()
 	
-	csv=csvparse.csvparse(fd)
+	csv=csvparse.csvparse(fd,sep=sep)
 	typemap={datetime:DateTime, int:Integer, float:Float}
 	cols=[]
 	assert hasattr(fd,'seek'), "fd has to be seekable"
