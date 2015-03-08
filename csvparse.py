@@ -26,16 +26,16 @@ class csvparse(object):
 		self.maxrows=maxrows
 		self.sep=sep
 		
-		self.start=0
+		self.utf=False
 		if fd.read(3)=="\xef\xbb\xbf":
-			self.start=3
+			self.utf=True
 
-		self.fd.seek(self.start)
+		self.fd.seek(3 if self.utf else 0)
 		self.headers=[]
 		self.headers=[i.strip() for i in self.splitrow(fd.readline(),nocheck=True) if i.strip()!='']
-		self.fd.seek(self.start)
+		self.fd.seek(3 if self.utf else 0)
 
-		self.types=[failtype.failtype() for i in self.headers]
+		self.types=[failtype.failtype(utf=self.utf) for i in self.headers]
 		self.probe(fd)
 
 	def probe(self,fd):
@@ -71,7 +71,7 @@ class csvparse(object):
 		return newrow
 
 	def __iter__(self):
-		self.fd.seek(self.start)
+		self.fd.seek(3 if self.utf else 0)
 		self.fd.readline()
 		def rowitterator():
 			failed=False
