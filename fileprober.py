@@ -87,9 +87,12 @@ def _full_skipper(fd,callback,skiphead,maxrows):
 		callback(line)
 
 	fd.seek(-4,2) #Read the last (or second-to-last line)
-	while (fd.read(1)!="\n"):
+	seekcount=0
+	while (fd.read(1)!="\n" and seekcount<100):
 		fd.seek(-2,1)
 		pass
+	if seekcount>=100:
+		return #prevent deadlock in multi-byte UTF-streams
 	line=fd.readline()[:-1]
 	callback(line)
 
