@@ -9,8 +9,8 @@ def fileprober(fd,callback,skiphead=True,maxrows=10000):
 
 	fd: a file descriptor that is to be analyzed
 	callback: the callback will be called for every selected row in the file
-	skiphead: Skip the first line (as it probbably contains column headers)
-	maxrows: the aproximate number of rows to sample fo the file.
+	skiphead (default True: Skip the first line (as it probbably contains column headers)
+	maxrows (default 10000): the aproximate number of rows to sample fo the file.
 		It read the first 1% or 4 rows, which ever is the larger of the
 		specified maxrows of a file and then attempt to spread the reads
 		evenly through out the file. The number is somewhat aproximate and
@@ -66,6 +66,7 @@ def _full_skipper(fd,callback,skiphead,maxrows):
 		if n>=headread:
 			break
 		n+=1
+		#print n
 		consumed+=len(line)
 		callback(line)
 	remaining_size=fsize-consumed
@@ -81,9 +82,11 @@ def _full_skipper(fd,callback,skiphead,maxrows):
 		while (fd.read(1)!="\n" and fd.read(1)!=''):
 			pass
 		line=fd.readline()[:-1]
+		if line.strip()=='':
+			break
 		callback(line)
 
-	fd.seek(-3,2) #Read the last (or second-to-last line)
+	fd.seek(-4,2) #Read the last (or second-to-last line)
 	while (fd.read(1)!="\n"):
 		fd.seek(-2,1)
 		pass
@@ -149,7 +152,7 @@ def _test_with_typer():
 	>>> t=failtype()
 	>>> fileprober(f,t.test,skiphead=True,maxrows=40)
 	>>> t.get_best_type()
-	typeinfo(converter=<type 'int'>, type=<type 'int'>)
+	typeinfo(converter=<function nullsafe_int at ...>, type=<type 'int'>)
 	>>> f.seek(0)
 	>>> t=failtype()
 	>>> fileprober(f,t,skiphead=False,maxrows=40)
@@ -159,4 +162,4 @@ def _test_with_typer():
 
 if __name__ == "__main__":
 	import doctest
-	doctest.testmod()
+	doctest.testmod(optionflags=doctest.ELLIPSIS)
