@@ -32,10 +32,12 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 		tabname=_to_tabname(fd.name)
 
 	for name,t in zip(csv.headers,csv.types):
-		if t.type==str:
-			newcol=Column(name, String(t.get_extras()['strsize']+1))
-		if t.type==unicode:
-			newcol=Column(name, String(t.get_extras()['strsize']+1))
+		if t.type==str or t.type==unicode:
+			if (t.get_extras()['strsize']> 50):
+				newcol=Column(name, Text)
+			else:
+				#lets be paranoid..
+				newcol=Column(name, String(t.get_extras()['strsize']*2+1))
 		else:
 			newcol=Column(name, typemap[t.type])
 		cols.append(newcol)
