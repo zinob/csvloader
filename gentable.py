@@ -33,7 +33,9 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 
 	for name,t in zip(csv.headers,csv.types):
 		if t.type==str:
-			newcol=Column(name, String(t.get_extras()['strsize']))
+			newcol=Column(name, String(t.get_extras()['strsize']+1))
+		if t.type==unicode:
+			newcol=Column(name, String(t.get_extras()['strsize']+1))
 		else:
 			newcol=Column(name, typemap[t.type])
 		cols.append(newcol)
@@ -45,21 +47,20 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 		import sys
 		print 'generating:', table
 		pprint(cols)
+	conn=engine.connect()
+	trans=conn.begin()
 	n=0
-	batch=[]
-	for l in csv:
-		batch.append(l)
-		if n>1000:
-			ins=table.insert().values(batch)
-			engine.connect().execute(ins)
-			batch=[]
-			n=0
-			if verbose:
+	for l in csv:	
+		conn.execute(table.insert(), dict(zip(csv.headers,l)))
+		if verbose:
+			if n>1000:
 				sys.stdout.write('.')
 				sys.stdout.flush()
-		n+=1
-	ins=table.insert().values(batch)
-	engine.connect().execute(ins)
+				n=0
+			n+=1
+	trans.commit()
+	sys.stdout.write('\n')
+	sys.stdout.flush()
 
 def _to_tabname(s):
 	"strip direcotry and ext-part of a file name"
