@@ -52,7 +52,7 @@ class failtype(object):
 				#print sys.exc_info()
 		if len(self._converter_result)==0:
 			newlen=len(example)
-			if newlen>self._extras.get("strsize",1):
+			if newlen>self._extras.get("strsize",-1):
 				self._extras["strsize"]=len(example)
 
 		self._test_performed=True
