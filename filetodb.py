@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 import gentable
 import argparse
@@ -29,17 +29,15 @@ def main():
 			except:
 				pass
 
-	print tablemap
 	dbURL=args.database
 	sep=args.separator
 	verbose=args.verbose
 
 	for fname in args.CSVfiles:
 		tab=getfuzzy(tablemap,fname)
-		print tab
 		gentable.load_to_table(open(fname,'r'),dbURL, sep=sep, tabname=tab, verbose=verbose)
 def getfuzzy(map,key):
-	keys=[key, gentable._to_tabname(key),key.rsplit("/",1)]
+	keys=[key, gentable._to_tabname(key),key.rsplit("/",1)[-1]]
 	for i in keys:
 		val=map.get(i,None)
 		if val!=None:
