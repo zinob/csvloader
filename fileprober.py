@@ -16,6 +16,8 @@ def fileprober(fd,callback,skiphead=True,maxrows=10000):
 		evenly through out the file. The number is somewhat aproximate and
 		might be +- "a few"
 	"""
+	#to be implemented ,sparse=True
+	## sparse (default True): If set to false the entire file will be read to determine the type. This will lead to each file being read in full twice. Once for typing once for insersion in to the database
 
 	fsize=0
 	try:
@@ -66,15 +68,16 @@ def _full_skipper(fd,callback,skiphead,maxrows):
 		if n>=headread:
 			break
 		n+=1
-		#print n
 		consumed+=len(line)
 		callback(line)
 	remaining_size=fsize-consumed
 	remaining_rows=maxrows-n
 	avg_rowlen=(consumed/n)
 	
-	jumplen=(remaining_size/avg_rowlen)/remaining_rows
-	jumplen=max(jumplen,consumed/n+2) ##skip through file and read lines
+	jumplen=remaining_size/remaining_rows
+	if jumplen< avg_rowlen:
+		jumplen=remaining_size/(avg_rowlen+1)
+	
 	fd.seek(consumed)
 	while (n<(maxrows-1) and fd.tell() < (fsize-jumplen*2)):
 		n+=1
