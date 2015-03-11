@@ -9,7 +9,7 @@ class csvparse(object):
 
 	instantiate the class with a filedescriptor of a CSV file and then itterate over it.
 	"""
-	def __init__(self,fd,sep=',',maxrows=1000):
+	def __init__(self,fd,sep=',',maxrows=1000,verbose=False):
 		"""
 		fd: A file descriptor pointing to the CSV-file to be parsed,
 				must be seekable.
@@ -19,13 +19,16 @@ class csvparse(object):
 
 		maxrows: (default:1000) the aproximate number of rows to
 				sample from the file to deduce the column types
+
+		verbose (default False): print extra debugging information
 		"""
 		self.types=[]
 		assert hasattr(fd,'seek'), "provided file descriptor must be seekable"
 		self.fd=fd
 		self.maxrows=maxrows
 		self.sep=sep
-		
+		self.verbose=verbose
+
 		self.utf=False
 		if fd.read(3)=="\xef\xbb\xbf":
 			self.utf=True
@@ -36,6 +39,8 @@ class csvparse(object):
 		self.fd.seek(3 if self.utf else 0)
 
 		self.types=[failtype.failtype(utf=self.utf) for i in self.headers]
+		if self.verbose:
+			print "Starting file probe"
 		self.probe(fd)
 
 	def probe(self,fd):

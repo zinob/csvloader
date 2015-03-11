@@ -23,11 +23,12 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 	engine = create_engine(dbURL)
 	metadata = MetaData()
 	
-	csv=csvparse.csvparse(fd,sep=sep)
-	typemap={datetime:DateTime, int:Integer, float:Float, unicode:String}
-	cols=[]
 	assert hasattr(fd,'seek'), "fd has to be seekable"
 	assert tabname or hasattr(fd,'name'), "fd needs to have a .name attribute"
+
+	csv=csvparse.csvparse(fd,sep=sep,maxrows=10000,verbose)
+	typemap={datetime:DateTime, int:Integer, float:Float, unicode:String}
+	cols=[]
 	if (tabname ==None):
 		tabname=_to_tabname(fd.name)
 
@@ -41,7 +42,7 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 		else:
 			newcol=Column(name, typemap[t.type])
 		cols.append(newcol)
-	table = Table(tabname, metadata, *cols)
+	table = Table(tabname, metadata, *cols, mysql_charset='utf8')
 	metadata.create_all(engine)
 
 	if verbose:
@@ -61,8 +62,9 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 				n=0
 			n+=1
 	trans.commit()
-	sys.stdout.write('\n')
-	sys.stdout.flush()
+	if verbose:
+		sys.stdout.write('\n')
+		sys.stdout.flush()
 
 def _to_tabname(s):
 	"strip direcotry and ext-part of a file name"
@@ -92,7 +94,18 @@ def _test_multicol():
 	>>> import sqlite3
 	>>> db=sqlite3.connect("/tmp/gentable_testtable.sqlite")
 	>>> db.execute('select sql from sqlite_master where name=?;',[fd.name]).fetchall()
-	[(u'CREATE TABLE multicol_stringio (\\n\\tisint INTEGER, \\n\\tisfloat FLOAT, \\n\\tisstr VARCHAR(6), \\n\\tisdate DATETIME\\n)',)]
+	[(u'CREATE TABLE multicol_stringio (\\n\\tisint INTEGER, \\n\\tisfloat FLOAT, \\n\\tisstr VARCHAR(13), \\n\\tisdate DATETIME\\n)',)]
+   '''
+
+def _test_UTF():
+   '''
+   >>> from StringIO import StringIO as sIO
+	>>> heads="\xef\xbb\xbfisint,isstr"
+	>>> lines=[str(i)+",foo"+u'\u2013 \u201d \xc3\xa5\xc3\xa4\xc3\xb6'.encode('utf-8') for i in range(29)]
+   >>> fd=sIO(heads+chr(10)+chr(10).join(lines))
+	>>> fd.seek(0)
+	>>> fd.name="multicol_stringio"
+	>>> load_to_table(fd,"sqlite:////tmp/gentable_testtable.sqlite")
    '''
 if __name__ == "__main__":
 	import doctest
