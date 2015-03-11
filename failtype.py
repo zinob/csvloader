@@ -25,6 +25,7 @@ class failtype(object):
 		for i in self._converters:
 			self._converter_result.append({'converter':i,'lasttype':None})
 		
+		#print "I AM ALIVE " + str(id(self))
 
 	def __call__(self,example):
 		"""
@@ -54,8 +55,9 @@ class failtype(object):
 			newlen=len(example)
 			if newlen>self._extras.get("strsize",-1):
 				self._extras["strsize"]=len(example)
-
 		self._test_performed=True
+		#print "FEEED MEEEE "+str(id(self))
+
 				
 	def get_extras(self):
 		return self._extras
@@ -67,7 +69,7 @@ class failtype(object):
 		returns a tupple consisting of the most specific type and its converter-function. 
 		"""
 		if not self._test_performed:
-			raise LookupError("typer hasnt been fed with data")
+			raise LookupError("typer hasnt been fed with data. meditation:"+str(id(self)))
 		if len(self._converter_result)==0:
 			if not self.utf:
 				return self.typeinfo(str,str)
@@ -88,7 +90,7 @@ class failtype(object):
 			conv.__name__="nullsafe_"+best['converter'].__name__
 		else:
 			conv=best['converter']
-
+		#print "I CROWN "+str(self.typeinfo(conv,best['lasttype']))
 		return self.typeinfo(conv,best['lasttype'])
 
 	@property
