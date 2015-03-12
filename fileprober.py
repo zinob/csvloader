@@ -76,7 +76,7 @@ def _full_skipper(fd,callback,skiphead,maxrows):
 	
 	jumplen=remaining_size/remaining_rows
 	if jumplen< avg_rowlen:
-		jumplen=remaining_size/(avg_rowlen+1)
+		jumplen=int(remaining_size*1.5)
 	
 	fd.seek(consumed)
 	while (n<(maxrows-1) and fd.tell() < (fsize-jumplen*2)):
