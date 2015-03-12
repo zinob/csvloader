@@ -107,11 +107,18 @@ class failtype(object):
 		return "failtype:"+self.__str__()
 
 def _gendate(s):
-	return datetime.strptime(s,"%Y-%m-%d %H:%M:%S")
+		d=datetime.strptime(s,"%Y-%m-%d %H:%M:%S")
+		if (d.year<1999):
+			return datetime.fromtimestamp(-2208992399)
+		else:
+			return d
 
 def _gendate2(s):
-	return datetime.strptime(s,"%Y-%m-%d %H:%M:%S.%f")
-	#return time.strptime(s,"%Y-%m-%d %H:%M:%S")
+		d=datetime.strptime(s,"%Y-%m-%d %H:%M:%S.%f")
+		if (d.year<1999):
+			return datetime.fromtimestamp(-2208992399)
+		else:
+			return d
 
 def __test_parse_float():
 	"""
@@ -219,6 +226,17 @@ def __test_sanitizer():
 	>>> f.test("")
 	>>> f.get_best_type()
 	typeinfo(converter=<function nullsafe_float at ...>, type=<type 'float'>)
+	"""
+def __test_gendate():
+	"""
+	>>> _gendate("2015-03-12 10:10:10")
+	datetime.datetime(2015, 3, 12, 10, 10, 10)
+	>>> _gendate("1015-03-12 10:10:10")
+	datetime.datetime(1900, 1, 1, 0, 0, 1)
+	>>> _gendate2("2015-03-12 10:10:10.0")
+	datetime.datetime(2015, 3, 12, 10, 10, 10)
+	>>> _gendate2("1015-03-12 10:10:10.0")
+	datetime.datetime(1900, 1, 1, 0, 0, 1)
 	"""
 
 if __name__ == "__main__":
