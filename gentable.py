@@ -25,12 +25,15 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 	
 	assert hasattr(fd,'seek'), "fd has to be seekable"
 	assert tabname or hasattr(fd,'name'), "fd needs to have a .name attribute"
-
-	csv=csvparse.csvparse(fd,sep=sep,maxrows=10000,verbose)
-	typemap={datetime:DateTime, int:Integer, float:Float, unicode:String}
-	cols=[]
 	if (tabname ==None):
 		tabname=_to_tabname(fd.name)
+
+	if verbose:
+		print "Loading file:%s to table:%s"%(fd.name,tabname)
+	csv=csvparse.csvparse(fd,sep=sep,maxrows=10000,verbose=verbose)
+	typemap={datetime:DateTime, int:Integer, float:Float, unicode:String}
+	cols=[]
+
 
 	for name,t in zip(csv.headers,csv.types):
 		if t.type==str or t.type==unicode:
@@ -56,7 +59,7 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 	for l in csv:	
 		conn.execute(table.insert(), dict(zip(csv.headers,l)))
 		if verbose:
-			if n>1000:
+			if n>10000:
 				sys.stdout.write('.')
 				sys.stdout.flush()
 				n=0
@@ -65,6 +68,7 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 	if verbose:
 		sys.stdout.write('\n')
 		sys.stdout.flush()
+		print "Done loading table:%s"%(tabname)
 
 def _to_tabname(s):
 	"strip direcotry and ext-part of a file name"
