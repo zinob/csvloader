@@ -86,7 +86,7 @@ class csvparse(object):
 				try:
 					yield tuple(conv.converter(col) for conv,col in zip(self.types,self.splitrow(l)))
 				except ValueError:
-					failed=sys.exc_info()[0] #hope that we are on the last line,delay raising of error
+					failed=sys.exc_info()[1] #hope that we are on the last line,delay raising of error
 					
 	
 
