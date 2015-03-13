@@ -31,9 +31,8 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 	if verbose:
 		print "Loading file:%s to table:%s"%(fd.name,tabname)
 	csv=csvparse.csvparse(fd,sep=sep,maxrows=10000,verbose=verbose)
-	typemap={datetime:DateTime, int:Integer, float:Float, unicode:String}
+	typemap={datetime:DateTime, int:BigInteger, float:Float, unicode:String}
 	cols=[]
-
 
 	for name,t in zip(csv.headers,csv.types):
 		if t.type==str or t.type==unicode:
@@ -83,7 +82,7 @@ def _test_singlecol():
 	>>> import sqlite3
 	>>> db=sqlite3.connect("/tmp/gentable_testtable.sqlite")
 	>>> db.execute('select sql from sqlite_master where name=?;',[fd.name]).fetchall()
-	[(u'CREATE TABLE ... (\\n\\tcolname INTEGER\\n)',)]
+	[(u'CREATE TABLE ... (\\n\\tcolname BIGINT\\n)',)]
    '''
 
 def _test_multicol():
@@ -98,7 +97,7 @@ def _test_multicol():
 	>>> import sqlite3
 	>>> db=sqlite3.connect("/tmp/gentable_testtable.sqlite")
 	>>> db.execute('select sql from sqlite_master where name=?;',[fd.name]).fetchall()
-	[(u'CREATE TABLE multicol_stringio (\\n\\tisint INTEGER, \\n\\tisfloat FLOAT, \\n\\tisstr VARCHAR(13), \\n\\tisdate DATETIME\\n)',)]
+	[(u'CREATE TABLE multicol_stringio (\\n\\tisint BIGINT, \\n\\tisfloat FLOAT, \\n\\tisstr VARCHAR(13), \\n\\tisdate DATETIME\\n)',)]
    '''
 
 def _test_UTF():
@@ -108,7 +107,7 @@ def _test_UTF():
 	>>> lines=[str(i)+",foo"+u'\u2013 \u201d \xc3\xa5\xc3\xa4\xc3\xb6'.encode('utf-8') for i in range(29)]
    >>> fd=sIO(heads+chr(10)+chr(10).join(lines))
 	>>> fd.seek(0)
-	>>> fd.name="multicol_stringio"
+	>>> fd.name="utf_string_io"
 	>>> load_to_table(fd,"sqlite:////tmp/gentable_testtable.sqlite")
    '''
 if __name__ == "__main__":
