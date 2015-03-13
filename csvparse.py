@@ -54,11 +54,14 @@ class csvparse(object):
 			for typer,col in zip(self.types, self.splitrow(line)):
 				typer(col)
 
-		fileprober.fileprober(self.fd,
-				lineparser,
-				skiphead=True,
-				maxrows=self.maxrows
-		)
+		try:
+			fileprober.fileprober(self.fd,
+					lineparser,
+					skiphead=True,
+					maxrows=self.maxrows
+			)
+		except ValueError:
+			pass
 
 
 	def splitrow(self,row,nocheck=False):
@@ -81,12 +84,13 @@ class csvparse(object):
 		def rowitterator():
 			failed=False
 			for l in self.fd:
-				if failed:
-					raise failed
 				try:
 					yield tuple(conv.converter(col) for conv,col in zip(self.types,self.splitrow(l)))
 				except ValueError:
 					failed=sys.exc_info()[1] #hope that we are on the last line,delay raising of error
+				else:
+					if failed!=False:
+						raise failed
 					
 	
 
@@ -111,9 +115,9 @@ def _test_singlecol():
    >>> f=sIO("colname"+chr(10)+chr(10).join(str(i) for i in range(100)))
    >>> t=csvparse(f)
 	>>> t.types
-	[failtype:typeinfo(converter=<type 'int'>, type=<type 'int'>)]
+	[failtype:typeinfo(converter=<function nullsafe_int ...>, type=<type 'int'>)]
 	>>> [i for i in t][::9]
-	[[0], [9], [18], [27], [36], [45], [54], [63], [72], [81], [90], [99]]
+	[(0), (9), (18), (27), (36), (45), (54), (63), (72), (81), (90), (99)]
    """
 
 def _test_multicol():
@@ -122,13 +126,13 @@ def _test_multicol():
    >>> f=sIO("isaint,isafloat"+chr(10)+chr(10).join("%i,%i.%i"%(i,i,i) for i in range(100)))
    >>> t=csvparse(f)
 	>>> t.types
-	[failtype:typeinfo(converter=<type 'int'>, type=<type 'int'>), failtype:typeinfo(converter=<type 'float'>, type=<type 'float'>)]
+	[failtype:typeinfo(converter=<function nullsafe_int ...>, type=<type 'int'>), failtype:typeinfo(converter=<function nullsafe_float ...>, type=<type 'float'>)]
 	>>> print str(t)
 	csvparser:
-	  isaint: <type 'int'>
-	  isafloat: <type 'float'>
+	  isaint: <function nullsafe_int ...>
+	  isafloat: <function nullsafe_float ...>
 	>>> [i for i in t][::17]
-	[[0, 0.0], [17, 17.17], [34, 34.34], [51, 51.51], [68, 68.68], [85, 85.85]]
+	[(0, 0.0), (17, 17.17), (34, 34.34), (51, 51.51), (68, 68.68), (85, 85.85)]
 """
 
 def _test_hardcore():
@@ -143,6 +147,24 @@ def _test_hardcore():
 	[<type 'int'>, <type 'float'>, <type 'str'>, <type 'datetime.datetime'>]
 	"""
 
+def _test_trailing_lf():
+   """
+   >>> from StringIO import StringIO as sIO
+   >>> f=sIO("colA,colB"+chr(10)+chr(10).join(str(i)+","+str(i) for i in range(10))+(chr(10)*2))
+   >>> t=csvparse(f)
+	>>> _=[i for i in t]
+"""
+def _test_col_nummer_fail():
+   """
+   >>> from StringIO import StringIO as sIO
+   >>> f=sIO("colA,colB"+chr(10)+chr(10).join(str(i)+","+str(i) for i in range(10))+(chr(10)*2)+("1,2"+chr(10))*2)
+   >>> t=csvparse(f)
+	>>> _=[i for i in t]
+	Exception raised:
+	...
+	ValueError: ...
+"""
+
 if __name__ == "__main__":
 	import doctest
-	doctest.testmod()
+	doctest.testmod(optionflags=doctest.ELLIPSIS)
