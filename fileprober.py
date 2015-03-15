@@ -27,8 +27,9 @@ def fileprober(fd,callback,skiphead=True,maxrows=10000):
 	#if filesize >= 0:  #Might be implemented in the future
 	#	_naive_skipper(fd,callback,maxrows)
 	#	return
-
-	if (hasattr(fd,'seek') and hasattr(fd,'tell') and fsize != 0):
+	if maxrows==False:
+		_full_reader(fd,callback,skiphead)
+	elif (hasattr(fd,'seek') and hasattr(fd,'tell') and fsize != 0):
 		_full_skipper(fd,callback,skiphead,maxrows)
 	else:
 		_head_reader(fd,callback,skiphead,maxrows)
@@ -44,6 +45,15 @@ def _head_reader(fd,callback,skiphead,maxrows):
 		if n>= maxrows:
 			return
 		n+=1
+		callback(line)
+
+def _full_reader(fd,callback,skiphead):
+	"""
+	Run the callback on _every_single_line_ of the file, usefull when a column is realy sparse
+	"""
+	if skiphead==True:
+		fd.readline()
+	for line in fd:
 		callback(line)
 
 def _full_skipper(fd,callback,skiphead,maxrows):
@@ -112,6 +122,16 @@ def _test_head_reader():
 	0 22 99
 	"""
 
+def _test_full_reader():
+	"""
+	>>> from StringIO import StringIO as sIO
+	>>> f=sIO(chr(10).join(map(str,range(20000))))
+	>>> def foo(x):
+	...	print x.strip(),
+	>>> fileprober(f,foo,skiphead=False,maxrows=False)
+	0 ... 100 101 102... 511 512 ... 19998 19999
+	"""
+
 def _test_head_readerskip():
 	"""
 	>>> from StringIO import StringIO as sIO
@@ -146,7 +166,7 @@ def _test_seek_reader():
 	>>> def foo(x):
 	...      print x.strip(),
 	>>> fileprober(f,foo,skiphead=False,maxrows=10)
-	0 1 2 3 42 51 58 65 74 99
+	0 1 2 3 82 99
 	>>> os.remove(testfile)
 	"""
 
