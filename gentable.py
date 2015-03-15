@@ -8,7 +8,7 @@ import csvparse
 from sqlalchemy import *
 
 
-def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False, continue_on_error=False):
+def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False, continue_on_error=False, maxrows=10000):
 	"""
 	fd: a file descriptor pointing to the desired csv-file
 	dbURL: an url pointing to the desired database,for example "sqlite:///:memory:"
@@ -30,7 +30,7 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False, continue_on_erro
 
 	if verbose:
 		print "Loading file:%s to table:%s"%(fd.name,tabname)
-	csv=csvparse.csvparse(fd,sep=sep,maxrows=10000,verbose=verbose)
+	csv=csvparse.csvparse(fd,sep=sep,maxrows=maxrows,verbose=verbose)
 	typemap={datetime:DateTime, int:BigInteger, float:Float, unicode:String}
 	cols=[]
 
