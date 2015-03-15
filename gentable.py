@@ -8,7 +8,7 @@ import csvparse
 from sqlalchemy import *
 
 
-def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
+def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False, continue_on_error=False):
 	"""
 	fd: a file descriptor pointing to the desired csv-file
 	dbURL: an url pointing to the desired database,for example "sqlite:///:memory:"
@@ -57,6 +57,7 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False):
 	n=0
 	for l in csv:	
 		conn.execute(table.insert(), dict(zip(csv.headers,l)))
+
 		if verbose:
 			if n>10000:
 				sys.stdout.write('.')
@@ -99,6 +100,20 @@ def _test_multicol():
 	>>> db.execute('select sql from sqlite_master where name=?;',[fd.name]).fetchall()
 	[(u'CREATE TABLE multicol_stringio (\\n\\tisint BIGINT, \\n\\tisfloat FLOAT, \\n\\tisstr VARCHAR(13), \\n\\tisdate DATETIME\\n)',)]
    '''
+
+def _test_colfail():
+   '''
+   >>> from StringIO import StringIO as sIO
+	>>> heads="isint,isfloat,isdate"
+	>>> lines=["%i,%i.%i,foobar,2015-01-%i 10:10:10"%(i,i,i,i+1) for i in range(29)]
+	>>> for i in range(8):
+	...	lines.insert(i*3,"%i,foobar,2015-01-%i 10:10:10"%(i,i+1))
+	>>> print chr(10).join(lines)
+	>>> fd=sIO(heads+chr(10)+chr(10).join(lines))
+	>>> fd.name="failcol"
+	>>> load_to_table(fd,"sqlite:////tmp/gentable_testtable.sqlite",verbose=True,continue_on_error=True)
+   '''
+
 
 def _test_UTF():
    '''
