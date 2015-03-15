@@ -17,6 +17,9 @@ def main():
 	parser.add_argument('-v','--verbose', dest='verbose',action='store_true', help='Produce more information about the tables being generated')
 
 	parser.add_argument('--ignore-invalid', dest='ignoreColErrors',action='store_true', help='Continue parsing despite errors on individual lines, write the exception info to TABLENAME_errors.log')
+
+	parser.add_argument('--full-file', dest='read_full_file',action='store_true', help='Do not use sparse column type-probing  run typer on every single row in the entire file')
+
 	args= parser.parse_args()
 
 	tablemap={}
@@ -35,9 +38,14 @@ def main():
 	verbose=args.verbose
 	continue_on_error=args.ignoreColErrors
 
+	if args.read_full_file:
+		maxrows=False
+	else:
+		maxrows=10000
+
 	for fname in args.CSVfiles:
 		tab=getfuzzy(tablemap,fname)
-		gentable.load_to_table(open(fname,'r'),dbURL, sep=sep, tabname=tab, verbose=verbose, continue_on_error=continue_on_error)
+		gentable.load_to_table(open(fname,'r'),dbURL, sep=sep, tabname=tab, verbose=verbose, continue_on_error=continue_on_error, maxrows=maxrows)
 def getfuzzy(map,key):
 	keys=[key, gentable._to_tabname(key),key.rsplit("/",1)[-1]]
 	for i in keys:
