@@ -9,7 +9,7 @@ class csvparse(object):
 
 	instantiate the class with a filedescriptor of a CSV file and then itterate over it.
 	"""
-	def __init__(self,fd,sep=',',maxrows=1000,verbose=False):
+	def __init__(self,fd,sep=',',maxrows=1000,verbose=False,continue_on_error=False,log_file=None):
 		"""
 		fd: A file descriptor pointing to the CSV-file to be parsed,
 				must be seekable.
@@ -17,17 +17,26 @@ class csvparse(object):
 		sep: (default:",") the character used to sepparate columns.
 				Can not be escaped in the document.
 
-		maxrows: (default:1000) the aproximate number of rows to
+		maxrows (default:1000): the aproximate number of rows to
 				sample from the file to deduce the column types
 
 		verbose (default False): print extra debugging information
+
+		continue_on_error (default False): attempt to ignore errorous lines and just keep reading.
+				If you use this option it is neccesary to allso specify a logfile.
+		
+		log_file: a file-like object to which any error messages supressed
+				via the continue_on_error should be logged.
 		"""
 		self.types=[]
 		assert hasattr(fd,'seek'), "provided file descriptor must be seekable"
+		assert (continue_on_error and log_file) or (not continue_on_error), "You must specify a log target if continuing on errors"
 		self.fd=fd
 		self.maxrows=maxrows
 		self.sep=sep
 		self.verbose=verbose
+		self._continue_on_error=continue_on_error
+		self._log_file=log_file
 
 		self.utf=False
 		if fd.read(3)=="\xef\xbb\xbf":
@@ -54,14 +63,12 @@ class csvparse(object):
 			for typer,col in zip(self.types, self.splitrow(line)):
 				typer(col)
 
-		try:
-			fileprober.fileprober(self.fd,
-					lineparser,
-					skiphead=True,
-					maxrows=self.maxrows
-			)
-		except ValueError:
-			pass
+		fileprober.fileprober(self.fd,
+				lineparser,
+				skiphead=True,
+				maxrows=self.maxrows,
+				ignore_exceptions=True,
+		)
 
 
 	def splitrow(self,row,nocheck=False):
@@ -86,8 +93,16 @@ class csvparse(object):
 			for l in self.fd:
 				try:
 					yield tuple(conv.converter(col) for conv,col in zip(self.types,self.splitrow(l)))
-				except ValueError:
-					failed=sys.exc_info()[1] #hope that we are on the last line,delay raising of error
+				except ValueError as e:
+					if self._continue_on_error:
+						self._log_file.write(repr(e)+"\n----------\n")
+					else:
+						failed=sys.exc_info()[1] #hope that we are on the last line,delay raising of error
+				except Exception as e:
+					if self._continue_on_error:
+						self._log_file.write(repr(e)+"\n----------\n")
+					else:
+						raise
 				else:
 					if failed!=False:
 						raise failed
@@ -117,7 +132,7 @@ def _test_singlecol():
 	>>> t.types
 	[failtype:typeinfo(converter=<function nullsafe_int ...>, type=<type 'int'>)]
 	>>> [i for i in t][::9]
-	[(0), (9), (18), (27), (36), (45), (54), (63), (72), (81), (90), (99)]
+	[(0,), (9,), (18,), (27,), (36,), (45,), (54,), (63,), (72,), (81,), (90,), (99,)]
    """
 
 def _test_multicol():
@@ -141,7 +156,6 @@ def _test_hardcore():
 	>>> heads="isint,isfloat,isstr,isdate"
 	>>> lines=["%i,%i.%i,foobar,2015-01-%02i 10:10:10"%(i,i,i,i+1) for i in range(30)]
    >>> fd=sIO(heads+chr(10)+chr(10).join(lines))
-	>>> fd.seek(0)
    >>> t=csvparse(fd)
 	>>> [i.type for i in t.types]
 	[<type 'int'>, <type 'float'>, <type 'str'>, <type 'datetime.datetime'>]
@@ -151,9 +165,30 @@ def _test_trailing_lf():
    """
    >>> from StringIO import StringIO as sIO
    >>> f=sIO("colA,colB"+chr(10)+chr(10).join(str(i)+","+str(i) for i in range(10))+(chr(10)*2))
-   >>> t=csvparse(f)
+	>>> log=sIO()
+   >>> t=csvparse(f,continue_on_error=True,log_file=log)
 	>>> _=[i for i in t]
+	>>> log.seek(0)
+	>>> len(log.readlines())
+	2
 """
+
+def test_continuation():
+	"""
+   >>> from StringIO import StringIO as sIO
+	>>> heads="isint,isfloat,isdate"
+	>>> lines=["%i,%i.%i,foobar,2015-01-%i 10:10:10"%(i,i,i,i+1) for i in range(29)]
+	>>> for i in range(8):
+	...	lines.insert(i*3,"%i,foobar,2015-01-%i 10:10:10"%(i,i+1))
+	>>> f=sIO(heads+chr(10)+chr(10).join(lines))
+	>>> log=sIO()
+	>>> t=csvparse(f,continue_on_error=True,log_file=log)
+	>>> len([i for i in t])
+	8
+	>>> log.seek(0)
+	>>> len([i for i in log.readlines() if "different number" in i ])
+	29
+	"""
 def _test_col_nummer_fail():
    """
    >>> from StringIO import StringIO as sIO
@@ -161,8 +196,9 @@ def _test_col_nummer_fail():
    >>> t=csvparse(f)
 	>>> _=[i for i in t]
 	Exception raised:
-	...
-	ValueError: ...
+		Traceback (most recent call last):
+		...
+		ValueError: ...
 """
 
 if __name__ == "__main__":
