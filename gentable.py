@@ -8,7 +8,7 @@ import csvparse
 from sqlalchemy import *
 
 
-def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False, continue_on_error=False, maxrows=10000):
+def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False, continue_on_error=False, log_file=None, maxrows=10000):
 	"""
 	fd: a file descriptor pointing to the desired csv-file
 	dbURL: an url pointing to the desired database,for example "sqlite:///:memory:"
@@ -25,12 +25,22 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False, continue_on_erro
 	
 	assert hasattr(fd,'seek'), "fd has to be seekable"
 	assert tabname or hasattr(fd,'name'), "fd needs to have a .name attribute"
+
+	assert (continue_on_error and log_file) or (not continue_on_error), "You must specify a log file if continuing on errors"
+
 	if (tabname ==None):
 		tabname=_to_tabname(fd.name)
 
 	if verbose:
 		print "Loading file:%s to table:%s"%(fd.name,tabname)
-	csv=csvparse.csvparse(fd,sep=sep,maxrows=maxrows,verbose=verbose)
+	csv=csvparse.csvparse(
+		fd,
+		sep=sep,
+		maxrows=maxrows,
+		verbose=verbose,
+		continue_on_error=continue_on_error,
+		log_file=log_file
+	)
 	typemap={datetime:DateTime, int:BigInteger, float:Float, unicode:String}
 	cols=[]
 
@@ -104,14 +114,22 @@ def _test_multicol():
 def _test_colfail():
    '''
    >>> from StringIO import StringIO as sIO
+	>>> import sqlite3
+	>>> db=sqlite3.connect("/tmp/gentable_testtable.sqlite")
+	>>> _=db.execute('DROP table failcol;')
+	>>> _=db.commit()
+	>>> db.close()
 	>>> heads="isint,isfloat,isdate"
 	>>> lines=["%i,%i.%i,foobar,2015-01-%i 10:10:10"%(i,i,i,i+1) for i in range(29)]
 	>>> for i in range(8):
 	...	lines.insert(i*3,"%i,foobar,2015-01-%i 10:10:10"%(i,i+1))
-	>>> print chr(10).join(lines)
 	>>> fd=sIO(heads+chr(10)+chr(10).join(lines))
 	>>> fd.name="failcol"
-	>>> load_to_table(fd,"sqlite:////tmp/gentable_testtable.sqlite",verbose=True,continue_on_error=True)
+	>>> elog=sIO()
+	>>> db=sqlite3.connect("/tmp/gentable_testtable.sqlite")
+	>>> load_to_table(fd,"sqlite:////tmp/gentable_testtable.sqlite",verbose=False,continue_on_error=True,log_file=elog)
+	>>> db.execute('select count(*) from failcol ;').fetchall()[0][0]
+	8
    '''
 
 
