@@ -3,7 +3,7 @@ import doctest
 import sys
 import os
 
-def fileprober(fd,callback,skiphead=True,maxrows=10000):
+def fileprober(fd,callback,skiphead=True,ignore_exceptions=False,maxrows=10000):
 	"""
 	Helper function to probe rows of large files.
 
@@ -28,13 +28,22 @@ def fileprober(fd,callback,skiphead=True,maxrows=10000):
 	#	_naive_skipper(fd,callback,maxrows)
 	#	return
 	if maxrows==False:
-		_full_reader(fd,callback,skiphead)
+		_full_reader(fd,callback,skiphead,ignore_exceptions=ignore_exceptions)
 	elif (hasattr(fd,'seek') and hasattr(fd,'tell') and fsize != 0):
-		_full_skipper(fd,callback,skiphead,maxrows)
+		_full_skipper(fd,callback,skiphead,maxrows,ignore_exceptions=ignore_exceptions)
 	else:
-		_head_reader(fd,callback,skiphead,maxrows)
+		_head_reader(fd,callback,skiphead,maxrows,ignore_exceptions=ignore_exceptions)
 
-def _head_reader(fd,callback,skiphead,maxrows):
+def _run_callback(callback,line,ignore_exceptions=False):
+	try:
+		callback(line)
+	except:
+		if ignore_exceptions:
+			pass
+		else:
+			raise
+
+def _head_reader(fd,callback,skiphead,maxrows,ignore_exceptions=False):
 	"""
 	If the file is not seekable, just read the first rows...
 	"""
@@ -45,18 +54,18 @@ def _head_reader(fd,callback,skiphead,maxrows):
 		if n>= maxrows:
 			return
 		n+=1
-		callback(line)
+		_run_callback(callback,line,ignore_exceptions)
 
-def _full_reader(fd,callback,skiphead):
+def _full_reader(fd,callback,skiphead,ignore_exceptions=False):
 	"""
 	Run the callback on _every_single_line_ of the file, usefull when a column is realy sparse
 	"""
 	if skiphead==True:
 		fd.readline()
 	for line in fd:
-		callback(line)
+		_run_callback(callback,line,ignore_exceptions)
 
-def _full_skipper(fd,callback,skiphead,maxrows):
+def _full_skipper(fd,callback,skiphead,maxrows,ignore_exceptions=False):
 	"""
 	Read the first few rows,
 	then some in the middle
@@ -79,7 +88,7 @@ def _full_skipper(fd,callback,skiphead,maxrows):
 			break
 		n+=1
 		consumed+=len(line)
-		callback(line)
+		_run_callback(callback,line,ignore_exceptions)
 	remaining_size=fsize-consumed
 	remaining_rows=maxrows-n
 	avg_rowlen=(consumed/n)
@@ -97,7 +106,7 @@ def _full_skipper(fd,callback,skiphead,maxrows):
 		line=fd.readline()[:-1]
 		if line.strip()=='':
 			break
-		callback(line)
+		_run_callback(callback,line,ignore_exceptions)
 
 	fd.seek(-4,2) #Read the last (or second-to-last line)
 	seekcount=0
@@ -107,7 +116,7 @@ def _full_skipper(fd,callback,skiphead,maxrows):
 	if seekcount>=100:
 		return #prevent deadlock in multi-byte UTF-streams
 	line=fd.readline()[:-1]
-	callback(line)
+	_run_callback(callback,line,ignore_exceptions)
 
 def _test_head_reader():
 	"""
