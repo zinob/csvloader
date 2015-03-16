@@ -38,6 +38,7 @@ def main():
 	verbose=args.verbose
 	continue_on_error=args.continue_on_error
 
+
 	if args.read_full_file:
 		maxrows=False
 	else:
@@ -45,7 +46,23 @@ def main():
 
 	for fname in args.CSVfiles:
 		tab=getfuzzy(tablemap,fname)
-		gentable.load_to_table(open(fname,'r'),dbURL, sep=sep, tabname=tab, verbose=verbose, continue_on_error=continue_on_error, maxrows=maxrows)
+
+		log_file=None
+		if continue_on_error:
+			import datetime
+			log_file=open(tab+"_errors.log","a")
+			log_file.write(datetime.datetime.now().strftime("----- %Y-%m-%d %H:%M:%S -----\n"))
+
+		gentable.load_to_table(
+			open(fname,'r'),
+			dbURL,
+			sep=sep,
+			tabname=tab,
+			verbose=verbose,
+			continue_on_error=continue_on_error,
+			log_file=log_file,
+			maxrows=maxrows
+		)
 def getfuzzy(map,key):
 	keys=[key, gentable._to_tabname(key),key.rsplit("/",1)[-1]]
 	for i in keys:
