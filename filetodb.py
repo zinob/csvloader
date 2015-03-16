@@ -16,7 +16,7 @@ def main():
 
 	parser.add_argument('-v','--verbose', dest='verbose',action='store_true', help='Produce more information about the tables being generated')
 
-	parser.add_argument('--ignore-invalid', dest='ignoreColErrors',action='store_true', help='Continue parsing despite errors on individual lines, write the exception info to TABLENAME_errors.log')
+	parser.add_argument('--ignore-invalid', dest='continue_on_error',action='store_true', help='Continue parsing despite errors on individual lines, write the exception info to TABLENAME_errors.log')
 
 	parser.add_argument('--full-file', dest='read_full_file',action='store_true', help='Do not use sparse column type-probing  run typer on every single row in the entire file')
 
@@ -36,7 +36,7 @@ def main():
 	dbURL=args.database
 	sep=args.separator
 	verbose=args.verbose
-	continue_on_error=args.ignoreColErrors
+	continue_on_error=args.continue_on_error
 
 	if args.read_full_file:
 		maxrows=False
