@@ -38,8 +38,8 @@ def main():
 	verbose=args.verbose
 	continue_on_error=args.continue_on_error
 
-
-	if args.read_full_file:
+	full_file_probe=args.read_full_file
+	if full_file_probe:
 		maxrows=False
 	else:
 		maxrows=10000
@@ -61,6 +61,7 @@ def main():
 			verbose=verbose,
 			continue_on_error=continue_on_error,
 			log_file=log_file,
+			full_file_probe=full_file_probe,
 			maxrows=maxrows
 		)
 def getfuzzy(map,key):
