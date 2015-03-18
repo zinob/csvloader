@@ -253,9 +253,18 @@ def __test_utflen():
 	>>> f.test(u"aao")
 	>>> f.get_extras()["strsize"]
 	3
-	>>> f.test('\xc3\xa5\xc3\xa4\xc3\xb6'.decode("utf"))
+	>>> utfstr='\xc3\xa5\xc3\xa4\xc3\xb6'.decode("utf")
+	>>> len(utfstr)
+	3
+	>>> f.test(utfstr)
 	>>> f.get_extras()["strsize"]
 	6
+	>>> f.test(u"mooh")
+	>>> f.get_extras()["strsize"]
+	6
+	>>> f.test(u"moh"+utfstr)
+	>>> f.get_extras()["strsize"]
+	9
 	"""
 
 if __name__ == "__main__":
