@@ -51,14 +51,22 @@ class failtype(object):
 			except:
 				self._converter_result.remove(c)
 				#print sys.exc_info()
-		if len(self._converter_result)==0:
-			newlen=len(example)
+		if len(self._converter_result)==0: #Yes there is a possible bug when the first lines are long, valid numbers, but this is slow enough as it is
+			if type(example) == unicode:
+				newlen=len(example.encode("utf-8"))
+			else:
+				newlen=len(example)
+
 			if newlen>self._extras.get("strsize",-1):
-				self._extras["strsize"]=len(example)
+				self._extras["strsize"]=newlen
 		self._test_performed=True
 		#print "FEEED MEEEE "+str(id(self))
 
 				
+	@property
+	def extras(self):
+		return self.get_extras()
+
 	def get_extras(self):
 		return self._extras
 	def get_best_type(self):
@@ -237,6 +245,17 @@ def __test_gendate():
 	datetime.datetime(2015, 3, 12, 10, 10, 10)
 	>>> _gendate2("1015-03-12 10:10:10.0")
 	datetime.datetime(1900, 1, 1, 0, 0, 1)
+	"""
+
+def __test_utflen():
+	"""
+	>>> f=failtype()
+	>>> f.test(u"aao")
+	>>> f.get_extras()["strsize"]
+	3
+	>>> f.test('\xc3\xa5\xc3\xa4\xc3\xb6'.decode("utf"))
+	>>> f.get_extras()["strsize"]
+	6
 	"""
 
 if __name__ == "__main__":
