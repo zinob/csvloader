@@ -30,15 +30,15 @@ def fileprober(fd,callback,skiphead=True,ignore_exceptions=False,maxrows=10000,v
 	#	return
 	if maxrows==False:
 		if verbose:
-			print "Starting full file reader probe"
+			print "Probing using file reader probe"
 		_full_reader(fd,callback,skiphead,ignore_exceptions=ignore_exceptions)
 	elif (hasattr(fd,'seek') and hasattr(fd,'tell') and fsize != 0):
 		if verbose:
-			print "Starting 'smart'-skipping file probe of %s lines"%maxrows
+			print "Probing using 'smart'-skipping file probe of %s lines"%maxrows
 		_full_skipper(fd,callback,skiphead,maxrows,ignore_exceptions=ignore_exceptions)
 	else:
 		if verbose:
-			print "Starting naive head-reader probe of %i lines"%maxrows
+			print "Probing using naive head-reader probe of %i lines"%maxrows
 		_head_reader(fd,callback,skiphead,maxrows,ignore_exceptions=ignore_exceptions)
 
 def _run_callback(callback,line,ignore_exceptions=False,verbose=False):
