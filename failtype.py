@@ -116,6 +116,13 @@ class failtype(object):
 	def __repr__(self):
 		return "failtype:"+self.__str__()
 
+def _limited_int(s):
+		i=int(s)
+		if (abs(i)>(2**63-2)): #if the numbers mangitude is greater than a longs max positive value...
+			raise ValueError("Value wont fit in databases long")
+		else:
+			return i
+
 def _gendate(s):
 		d=datetime.strptime(s,"%Y-%m-%d %H:%M:%S")
 		if (d.year<1999):
