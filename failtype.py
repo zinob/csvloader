@@ -49,6 +49,7 @@ class failtype(object):
 			try:
 				c['lasttype']=type(c['converter'](example))
 			except:
+				#print "removing %s from %s"%(c,id(self))
 				self._converter_result.remove(c)
 				#print sys.exc_info()
 		if len(self._converter_result)==0: #Yes there is a possible bug when the first lines are long, valid numbers, but this is slow enough as it is
@@ -80,10 +81,11 @@ class failtype(object):
 			raise LookupError("typer hasnt been fed with data. meditation:"+str(id(self)))
 		if len(self._converter_result)==0:
 			if not self.utf:
-				return self.typeinfo(str,str)
+				best={'converter':str,'lasttype':str}
 			else:
-				return self.typeinfo((lambda s: s.decode('utf-8')),unicode)
-		best=self._converter_result[-1]
+				best={'converter':lambda s: s.decode('utf-8'),'lasttype':unicode}
+		else:
+			best=self._converter_result[-1]
 
 		def nulldecorator(fun):
 			def nulldecorated(s):
@@ -172,7 +174,7 @@ def __test_parse_string():
 	0
 	>>> f.test("1911-03-20 11:11:00")
 	>>> f.get_best_type() 
-	typeinfo(converter=<type 'str'>, type=<type 'str'>)
+	typeinfo(converter=<function nullsafe_str at ...>, type=<type 'str'>)
 	>>> f.get_extras()['strsize'] 
 	19
 	"""
@@ -221,6 +223,15 @@ def __test_parse_float_list():
 	True
 	"""
 
+def __test_messy_should_be_string():
+	"""
+	>>> cases=[u'1215606', u'4239937', u'ASDFG0000119555',u'ASDFG0000994458',u'81,6',u'834801',u'441509']
+   >>> f=failtype()
+	>>> f.test(cases)
+	>>> f.get_best_type()
+	typeinfo(converter=<function nullsafe_str at ...>, type=<type 'str'>)
+	"""
+
 def __test_sanitizer():
 	"""
 	>>> f=failtype()
@@ -235,6 +246,7 @@ def __test_sanitizer():
 	>>> f.get_best_type()
 	typeinfo(converter=<function nullsafe_float at ...>, type=<type 'float'>)
 	"""
+
 def __test_gendate():
 	"""
 	>>> _gendate("2015-03-12 10:10:10")
