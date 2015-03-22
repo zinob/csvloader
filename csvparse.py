@@ -68,6 +68,7 @@ class csvparse(object):
 				skiphead=True,
 				maxrows=self.maxrows,
 				ignore_exceptions=True,
+				verbose=self.verbose
 		)
 
 
