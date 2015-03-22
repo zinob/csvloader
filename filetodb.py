@@ -70,6 +70,6 @@ def getfuzzy(map,key):
 		val=map.get(i,None)
 		if val!=None:
 			return val
-	return None
+	return gentable._to_tabname(key)
 
 main()
