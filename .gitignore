@@ -2,4 +2,6 @@
 core
 *.pyc
 *.sqlite
-dodb.sh
+dodb*.sh
+*errors.log
+hardcopy.*
