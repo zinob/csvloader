@@ -45,6 +45,19 @@ def load_to_table(fd,dbURL,sep=',', tabname=None,verbose=False, continue_on_erro
 	cols=[]
 
 	for name,t in zip(csv.headers,csv.types):
+		try:
+			t.type
+		except LookupError as e:
+			#If we have read all the file, and received no data, assume it is a short string.. augh..
+			if full_file_probe:
+				if verbose:
+					print "typer %s has not found any data in the entire file, feeding string"%name
+				t.test(u"StR  ")	
+				t.test(u"xzyX-")	
+			else:
+				raise LookupError("typer %s threw exception"%name,e)
+
+	for name,t in zip(csv.headers,csv.types):
 		if t.type==str or t.type==unicode:
 			if (t.get_extras()['strsize']> 50):
 				newcol=Column(name, Text)
