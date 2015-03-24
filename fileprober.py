@@ -30,7 +30,7 @@ def fileprober(fd,callback,skiphead=True,ignore_exceptions=False,maxrows=10000,v
 	#	return
 	if maxrows==False:
 		if verbose:
-			print "Probing using file reader probe"
+			print "Probing using full reader probe"
 		_full_reader(fd,callback,skiphead,ignore_exceptions=ignore_exceptions)
 	elif (hasattr(fd,'seek') and hasattr(fd,'tell') and fsize != 0):
 		if verbose:
